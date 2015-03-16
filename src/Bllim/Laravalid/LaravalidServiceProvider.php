@@ -19,11 +19,11 @@ class LaravalidServiceProvider extends ServiceProvider {
 	public function boot()
 	{
 		$this->publishes([
-			__DIR__.'/config/config.php' => config_path('laravalid/config.php'),
+			__DIR__.'/../../config/config.php' => config_path('laravalid/config.php'),
 		], 'config');
 
 		$this->publishes([
-		    __DIR__.'/../public' => public_path('vendor/laravalid'),
+		    __DIR__.'/../../../public' => public_path('vendor/laravalid'),
 		], 'public');
 
 		$routeName = config('laravalid.route');
@@ -70,8 +70,8 @@ class LaravalidServiceProvider extends ServiceProvider {
 	 */
 	protected function registerResources()
 	{
-	    $userConfigFile    = app()->configPath().'/laravalid/modules.php';
-	    $packageConfigFile = __DIR__.'/config/config.php';
+	    $userConfigFile    = app()->configPath().'/laravalid/config.php';
+	    $packageConfigFile = __DIR__.'/../../../config/config.php';
 	    $config            = $this->app['files']->getRequire($packageConfigFile);
 
 	    if (file_exists($userConfigFile)) {
