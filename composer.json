@@ -1,0 +1,25 @@
+{
+    "name": "bllim/laravalid",
+    "description": "This package makes validation rules defined in laravel work client-side by converting to html/js plugins such as jquery validation. It also allows to use laravel validation messages so you can show same messages for both sides.",
+    "keywords" : ["laravel","laravel5","validation","laravel validation","client-side","client side","laravel validation converter","laravel validation for client-side", "jquery validation", "bootstrap validation"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Bilal Gultekin",
+            "email": "bilal@bilal.im"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "illuminate/html": ">=4.2",
+        "illuminate/support": ">=4.2",
+        "illuminate/validation": ">=4.0",
+        "illuminate/routing": ">=4.0"
+    },
+    "autoload": {
+        "psr-0": {
+            "Bllim\\Laravalid\\": "src/"
+        }
+    },
+    "minimum-stability": "stable"
+}
