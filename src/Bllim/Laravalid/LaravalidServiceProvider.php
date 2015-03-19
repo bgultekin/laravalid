@@ -19,11 +19,11 @@ class LaravalidServiceProvider extends ServiceProvider {
 	public function boot()
 	{
 		$this->publishes([
-			__DIR__.'/../../config/config.php' => config_path('laravalid/config.php'),
+			__DIR__.'/../../../config' => config_path('laravalid'),
 		], 'config');
 
 		$this->publishes([
-		    __DIR__.'/../../../public' => public_path('vendor/laravalid'),
+		    __DIR__.'/../../../public' => public_path('laravalid'),
 		], 'public');
 
 		$routeName = config('laravalid.route');

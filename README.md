@@ -57,7 +57,7 @@ Composer will download the package. After the package is downloaded, open `confi
 
 Also you need to publish configuration file and assets by running the following Artisan commands.
 ```php
-$ php artisan bllim:publish
+$ php artisan vendor:publish
 ```
 
 ### Configuration
