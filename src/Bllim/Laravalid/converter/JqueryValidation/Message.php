@@ -1,8 +1,8 @@
-<?php namespace Bllim\Laravalid\Plugin\JqueryValidation;
+<?php namespace Bllim\Laravalid\Converter\JqueryValidation;
 
 use Lang;
 
-class Message extends \Bllim\Laravalid\BaseConverter\Message {
+class Message extends \Bllim\Laravalid\Converter\Base\Message {
 
 	public function ip($parsedRule, $attribute, $type) 
 	{

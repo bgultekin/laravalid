@@ -1,6 +1,6 @@
-<?php namespace Bllim\Laravalid\BaseConverter;
+<?php namespace Bllim\Laravalid\Converter\Base;
 /**
- * Some description...
+ * This container class brings to extended class extendibility and also base convert function
  * 
  * @package    Laravel Validation For Client-Side
  * @author     Bilal Gultekin <bilal@bilal.im>
@@ -9,9 +9,9 @@
  * @version    0.9
  */
 
-use Bllim\Laravalid\Helper;
+abstract class Container {
 
-abstract class Route extends Container {
+	protected $customMethods = [];
 
 	public function convert($name, $parameters)
 	{
@@ -27,16 +27,12 @@ abstract class Route extends Container {
 			return call_user_func_array([$this, $methodName], $parameters);
 		}
 
-		return $this->defaultRoute($name, $parameters);
+		return [];
 	}
 
-	public function defaultRoute($name, $parameters)
+	public function extend($name, $function)
 	{
-		$validator = \Validator::make(
-		    array('input' => $parameters['value']),
-		    array('input' => $name.':'.Helper::decrypt($parameters['validationParameters']))
-		);
-
-		return ['valid' => !$validator->fails(), 'messages' => $validator->messages()];
+		$this->customMethods[$name] = $function;
 	}
+
 }

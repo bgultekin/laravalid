@@ -1,4 +1,4 @@
-<?php namespace Bllim\Laravalid\BaseConverter;
+<?php namespace Bllim\Laravalid\Converter\Base;
 /**
  * Base converter class for converter plugins
  * 

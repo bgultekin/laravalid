@@ -54,7 +54,7 @@ class LaravalidServiceProvider extends ServiceProvider {
 
         $this->app->bindShared('laravalid', function ($app) {
             	$plugin = \Config::get('laravalid.plugin');
-            	$converterClassName = 'Bllim\Laravalid\Plugin\\'.$plugin.'\Converter';
+            	$converterClassName = 'Bllim\Laravalid\Converter\\'.$plugin.'\Converter';
             	$converter = new $converterClassName();
 
 				$form = new FormBuilder($app->make('html'), $app->make('url'), $app->make('session.store')->getToken(), $converter);

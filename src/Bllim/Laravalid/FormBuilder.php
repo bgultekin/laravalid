@@ -13,8 +13,6 @@
  * NOTE: If you use min, max, size, between and type of input is different from string
  * don't forget to specify the type (by using numeric, integer).
  *
- * TODO: Route system to unique
- *
  * @package    Laravel Validation For Client-Side
  * @author     Bilal Gultekin <bilal@bilal.im>
  * @license    MIT
@@ -27,7 +25,7 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 
 	protected $converter;
 
-	public function __construct(\Illuminate\Html\HtmlBuilder $html, \Illuminate\Routing\UrlGenerator $url, $csrfToken, BaseConverter\Converter $converter)
+	public function __construct(\Illuminate\Html\HtmlBuilder $html, \Illuminate\Routing\UrlGenerator $url, $csrfToken, Converter\Base\Converter $converter)
 	{
 		parent::__construct($html, $url, $csrfToken);
 		$plugin = config('laravalid.plugin');

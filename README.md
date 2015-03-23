@@ -188,7 +188,7 @@ Form::converter()->route()->extend('someotherrule', function($name, $parameters)
 });
 
 ```
-Second, you can create your own converter (which extends baseconverter or any current plugin converter) in `Bllim\Laravalid\Plugin\` namespace and change plugin configuration in config file with your own plugin name.
+Second, you can create your own converter (which extends baseconverter or any current plugin converter) in `Bllim\Laravalid\Converter\` namespace and change plugin configuration in config file with your own plugin name.
 
 > **Note:** If you are creating a converter for some existed html/js plugin please create it in `converters` folder and send a pull-request.
 

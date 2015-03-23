@@ -1,4 +1,4 @@
-<?php namespace Bllim\Laravalid\BaseConverter;
+<?php namespace Bllim\Laravalid\Converter\Base;
 /**
  * Some description...
  * 
@@ -9,6 +9,6 @@
  * @version    0.9
  */
 
-abstract class Message extends Container {
+abstract class Rule extends Container {
 
 }

@@ -1,4 +1,4 @@
-<?php namespace Bllim\Laravalid\BaseConverter;
+<?php namespace Bllim\Laravalid\Converter\Base;
 /**
  * Some description...
  * 
@@ -9,9 +9,9 @@
  * @version    0.9
  */
 
-abstract class Container {
+use Bllim\Laravalid\Helper;
 
-	protected $customMethods = [];
+abstract class Route extends Container {
 
 	public function convert($name, $parameters)
 	{
@@ -27,12 +27,16 @@ abstract class Container {
 			return call_user_func_array([$this, $methodName], $parameters);
 		}
 
-		return [];
+		return $this->defaultRoute($name, $parameters);
 	}
 
-	public function extend($name, $function)
+	public function defaultRoute($name, $parameters)
 	{
-		$this->customMethods[$name] = $function;
-	}
+		$validator = \Validator::make(
+		    array('input' => $parameters['value']),
+		    array('input' => $name.':'.Helper::decrypt($parameters['validationParameters']))
+		);
 
+		return ['valid' => !$validator->fails(), 'messages' => $validator->messages()];
+	}
 }

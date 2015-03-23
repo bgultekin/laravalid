@@ -1,6 +1,6 @@
 <?php namespace Bllim\Laravalid;
 /**
- * 
+ * Helper class
  * 
  *
  * @package    Laravel Validation For Client-Side

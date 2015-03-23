@@ -1,6 +1,6 @@
-<?php namespace Bllim\Laravalid\Plugin\JqueryValidation;
+<?php namespace Bllim\Laravalid\Converter\JqueryValidation;
 
-class Converter extends \Bllim\Laravalid\BaseConverter\Converter {
+class Converter extends \Bllim\Laravalid\Converter\Base\Converter {
 
 	public static $rule;
 	public static $message;
