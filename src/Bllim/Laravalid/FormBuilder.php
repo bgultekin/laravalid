@@ -19,7 +19,7 @@
  * @see        Illuminate\Html\FormBuilder
  * @version    0.9
  */
-use Lang, Config;
+use Lang;
 
 class FormBuilder extends \Illuminate\Html\FormBuilder {
 
@@ -28,7 +28,7 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 	public function __construct(\Illuminate\Html\HtmlBuilder $html, \Illuminate\Routing\UrlGenerator $url, $csrfToken, Converter\Base\Converter $converter)
 	{
 		parent::__construct($html, $url, $csrfToken);
-		$plugin = config('laravalid.plugin');
+		$plugin = \Config::get('laravalid.plugin');
 		$this->converter = $converter;
 	}
 

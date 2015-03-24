@@ -26,7 +26,7 @@ class LaravalidServiceProvider extends ServiceProvider {
 		    __DIR__.'/../../../public' => public_path('laravalid'),
 		], 'public');
 
-		$routeName = config('laravalid.route');
+		$routeName = \Config::get('laravalid.route');
 
 		// remote validations
 		\Route::any($routeName.'/{rule}', function($rule){

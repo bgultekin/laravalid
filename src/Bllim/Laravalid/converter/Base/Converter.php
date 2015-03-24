@@ -142,7 +142,7 @@ abstract class Converter {
 			$parsedRule = $this->parseValidationRule($rule);
 			$outputAttributes = $outputAttributes + $this->rule()->convert($parsedRule['name'], [$parsedRule, $inputName, $type]);
 
-			if(config('laravalid.useLaravelMessages', true))
+			if(\Config::get('laravalid.useLaravelMessages', true))
 			{
 				$messageAttributes = $this->message()->convert($parsedRule['name'], [$parsedRule, $inputName, $type]);
 				
