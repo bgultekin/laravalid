@@ -215,7 +215,7 @@ abstract class Converter {
 	 */
 	protected function getAttributeName($attribute)
 	{
-		return !\Lang::has('validation.attributes.'.$attribute) ? $attribute : Lang::get('validation.attributes.'.$attribute);
+		return !\Lang::has('validation.attributes.'.$attribute) ? $attribute : \Lang::get('validation.attributes.'.$attribute);
 	}
 
 }
