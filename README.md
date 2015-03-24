@@ -40,6 +40,8 @@ Require `bllim/laravel-validation-for-client-side` in composer.json and run `com
         ...
     }
 
+> **Note:** For **Laravel 4** use `laravel4` branch like as `"bllim/laravalid": "dev-laravel4"`
+
 Composer will download the package. After the package is downloaded, open `config/app.php` and add the service provider and alias as below:
 ```php
     'providers' => array(
