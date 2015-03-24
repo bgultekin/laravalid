@@ -18,13 +18,7 @@ class LaravalidServiceProvider extends ServiceProvider {
 	 */
 	public function boot()
 	{
-		$this->publishes([
-			__DIR__.'/../../../config' => config_path('laravalid'),
-		], 'config');
-
-		$this->publishes([
-		    __DIR__.'/../../../public' => public_path('laravalid'),
-		], 'public');
+		$this->package('bllim/laravalid', 'laravalid');
 
 		$routeName = \Config::get('laravalid.route');
 
@@ -70,7 +64,7 @@ class LaravalidServiceProvider extends ServiceProvider {
 	 */
 	protected function registerResources()
 	{
-	    $userConfigFile    = app()->configPath().'/laravalid/config.php';
+	    $userConfigFile    = app_path('config/laravalid/config.php');
 	    $packageConfigFile = __DIR__.'/../../../config/config.php';
 	    $config            = $this->app['files']->getRequire($packageConfigFile);
 
