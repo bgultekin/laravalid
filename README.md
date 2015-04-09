@@ -50,7 +50,7 @@ Composer will download the package. After the package is downloaded, open `confi
     ),
 ```
 ```php
-    'providers' => array(
+    'aliases' => array(
         ...
             'HTML'      => 'Illuminate\Support\Facades\HTML', // if not exists add for html too
             'Form'      => 'Bllim\Laravalid\Facade',
