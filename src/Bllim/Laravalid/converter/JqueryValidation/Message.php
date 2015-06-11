@@ -22,7 +22,19 @@ class Message extends \Bllim\Laravalid\Converter\Base\Message {
 		$message = Helper::getValidationMessage($attribute, $parsedRule['name']);
 		return ['data-msg-regex' => $message];
 	}
-	
+
+	public function integer($parsedRule, $attribute, $type)
+	{
+		$message = Helper::getValidationMessage($attribute, $parsedRule['name']);
+		return ['data-msg-number' => $message];
+	}
+
+	public function numeric($parsedRule, $attribute, $type)
+	{
+		$message = Helper::getValidationMessage($attribute, $parsedRule['name']);
+		return ['data-msg-number' => $message];
+	}
+
 	public function max($parsedRule, $attribute, $type)
 	{
 		$message = Helper::getValidationMessage($attribute, $parsedRule['name'], ['max' => $parsedRule['parameters'][0]], $type);
