@@ -22,4 +22,26 @@ class Helper {
 		return \Crypt::decrypt($data);
 	}
 
+	/**
+	 * Get user friendly validation message
+	 *
+	 * @return string
+	 */
+	public static function getValidationMessage($attribute, $rule, $data = [], $type = null)
+	{
+		$path = $rule;
+		if ($type !== null)
+		{
+			$path .= '.' . $type;
+		}
+
+		if (\Lang::has('validation.custom.' . $attribute . '.' . $path))
+		{
+			$path = 'custom.' . $attribute . '.' . $path;
+		}
+
+		$niceName = !\Lang::has('validation.attributes.'.$attribute) ? $attribute : \Lang::get('validation.attributes.'.$attribute);
+
+		return \Lang::get('validation.' . $path, $data + ['attribute' => $niceName]);
+	}
 }
