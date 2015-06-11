@@ -1,7 +1,7 @@
 <?php namespace Bllim\Laravalid;
 /**
  * Helper class
- * 
+ *
  *
  * @package    Laravel Validation For Client-Side
  * @author     Bilal Gultekin <bilal@bilal.im>
@@ -22,4 +22,13 @@ class Helper {
 		return \Crypt::decrypt($data);
 	}
 
+	/**
+	 * Get user friendly attribute name
+	 *
+	 * @return string
+	 */
+	public static function getAttributeName($attribute)
+	{
+		return !\Lang::has('validation.attributes.'.$attribute) ? $attribute : \Lang::get('validation.attributes.'.$attribute);
+	}
 }
