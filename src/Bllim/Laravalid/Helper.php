@@ -44,4 +44,14 @@ class Helper {
 
 		return \Lang::get('validation.' . $path, $data + ['attribute' => $niceName]);
 	}
+
+	/**
+	 * Get the raw attribute name without array braces
+	 *
+	 * @return string
+	 */
+	public static function getFormAttribute($name)
+	{
+		return substr($name, -2) === '[]' ? substr($name, 0, -2) : $name;
+	}
 }
