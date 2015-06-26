@@ -95,7 +95,7 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 	 */
 	public function input($type, $name, $value = null, $options = [])
 	{
-		$options = $this->converter->convert($name) + $options;
+		$options = $this->converter->convert(Helper::getFormAttribute($name)) + $options;
 		return parent::input($type, $name, $value, $options);
 	}
 
@@ -104,7 +104,7 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 	 */
 	public function textarea($name, $value = null, $options = [])
 	{
-		$options = $this->converter->convert($name) + $options;
+		$options = $this->converter->convert(Helper::getFormAttribute($name)) + $options;
 		return parent::textarea($name, $value, $options);
 	}
 
@@ -113,13 +113,13 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 	 */
 	public function select($name, $list = [], $selected = null, $options = [])
 	{
-		$options = $this->converter->convert($name) + $options;
+		$options = $this->converter->convert(Helper::getFormAttribute($name)) + $options;
 		return parent::select($name, $list, $selected, $options);
 	}
 
 	protected function checkable($type, $name, $value, $checked, $options)
 	{
-		$options = $this->converter->convert($name) + $options;
+		$options = $this->converter->convert(Helper::getFormAttribute($name)) + $options;
 		return parent::checkable($type, $name, $value, $checked, $options);
 	}
 
