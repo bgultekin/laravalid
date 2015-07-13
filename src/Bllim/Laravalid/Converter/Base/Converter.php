@@ -153,7 +153,7 @@ abstract class Converter {
 				}
                 else if ( count(array_keys($messageAttributes)) > 0 )
                 {
-                    $messageAttributes = $this->normalizeMessages($messageAttributes, $parsedRule, $inputName);
+                    $messageAttributes = $this->normalizeMessages($messageAttributes, $parsedRule, $inputName, $type);
                 }
 
 			}
@@ -223,13 +223,36 @@ abstract class Converter {
 		return !\Lang::has('validation.attributes.'.$attribute) ? $attribute : \Lang::get('validation.attributes.'.$attribute);
 	}
 
-    protected function normalizeMessages($message, $parsedRule, $inputName)
+    protected function normalizeMessages($message, $parsedRule, $inputName, $type)
     {
-        if ($parsedRule['name'] == 'same') {
-            $message = ['data-msg-equalto' => str_replace(':other', $this->getAttributeName($parsedRule['parameters'][0]), $message[array_keys($message)[0]])];
-            $message = ['data-msg-equalto' => str_replace($inputName, $this->getAttributeName($inputName), $message[array_keys($message)[0]])];
+        $found = false;
+        $key = '';
+        $value = $message[array_keys($message)[0]];
+
+        if ($parsedRule['name'] == 'same')
+        {
+            $key = 'data-msg-equalto';
+            $value = str_replace(':other', $this->getAttributeName($parsedRule['parameters'][0]), $value);
+        }
+        else if ($parsedRule['name'] == 'max')
+        {
+            $key = 'data-msg-maxlength';
+            if ($type == 'numeric') {
+                $key = 'data-msg-max';
+            }
+        }
+        else if ($parsedRule['name'] == 'min')
+        {
+            $key = 'data-msg-minlength';
+            if ($type == 'numeric') {
+                $key = 'data-msg-min';
+            }
         }
 
+        if (!empty($key) && !empty($value)) {
+            $value = str_replace($inputName, $this->getAttributeName($inputName), $value);
+            return [$key => $value];
+        }
 
         return $message;
     }
