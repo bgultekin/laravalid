@@ -10,6 +10,12 @@ class Message extends \Bllim\Laravalid\Converter\Base\Message {
 		return ['data-msg-ipv4' => $message];
 	}
 	
+	public function same($parsedRule, $attribute, $type) 
+	{
+		$message = Lang::get('validation.'.$parsedRule['name'], ['attribute' => $attribute]);
+		return ['data-msg-equalto' => $message];
+	}
+	
 	public function alpha($parsedRule, $attribute, $type) 
 	{
 		$message = Lang::get('validation.'.$parsedRule['name'], ['attribute' => $attribute]);
