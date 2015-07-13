@@ -145,12 +145,17 @@ abstract class Converter {
 			if(\Config::get('laravalid.useLaravelMessages', true))
 			{
 				$messageAttributes = $this->message()->convert($parsedRule['name'], [$parsedRule, $inputName, $type]);
-				
+
 				// if empty message attributes
 				if(empty($messageAttributes))
 				{
 					$messageAttributes = $this->getDefaultErrorMessage($parsedRule['name'], $inputName);
 				}
+                else if ( count(array_keys($messageAttributes)) > 0 )
+                {
+                    $messageAttributes = $this->normalizeMessages($messageAttributes, $parsedRule, $inputName, $type);
+                }
+
 			}
 
 			$outputAttributes = $outputAttributes + $messageAttributes;
@@ -217,5 +222,39 @@ abstract class Converter {
 	{
 		return !\Lang::has('validation.attributes.'.$attribute) ? $attribute : \Lang::get('validation.attributes.'.$attribute);
 	}
+
+    protected function normalizeMessages($message, $parsedRule, $inputName, $type)
+    {
+        $found = false;
+        $key = '';
+        $value = $message[array_keys($message)[0]];
+
+        if ($parsedRule['name'] == 'same')
+        {
+            $key = 'data-msg-equalto';
+            $value = str_replace(':other', $this->getAttributeName($parsedRule['parameters'][0]), $value);
+        }
+        else if ($parsedRule['name'] == 'max')
+        {
+            $key = 'data-msg-maxlength';
+            if ($type == 'numeric') {
+                $key = 'data-msg-max';
+            }
+        }
+        else if ($parsedRule['name'] == 'min')
+        {
+            $key = 'data-msg-minlength';
+            if ($type == 'numeric') {
+                $key = 'data-msg-min';
+            }
+        }
+
+        if (!empty($key) && !empty($value)) {
+            $value = str_replace($inputName, $this->getAttributeName($inputName), $value);
+            return [$key => $value];
+        }
+
+        return $message;
+    }
 
 }
