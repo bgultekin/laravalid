@@ -145,12 +145,17 @@ abstract class Converter {
 			if(\Config::get('laravalid.useLaravelMessages', true))
 			{
 				$messageAttributes = $this->message()->convert($parsedRule['name'], [$parsedRule, $inputName, $type]);
-				
+
 				// if empty message attributes
 				if(empty($messageAttributes))
 				{
 					$messageAttributes = $this->getDefaultErrorMessage($parsedRule['name'], $inputName);
 				}
+                else if ( count(array_keys($messageAttributes)) > 0 )
+                {
+                    $messageAttributes = $this->normalizeMessages($messageAttributes, $parsedRule, $inputName);
+                }
+
 			}
 
 			$outputAttributes = $outputAttributes + $messageAttributes;
@@ -217,5 +222,16 @@ abstract class Converter {
 	{
 		return !\Lang::has('validation.attributes.'.$attribute) ? $attribute : \Lang::get('validation.attributes.'.$attribute);
 	}
+
+    protected function normalizeMessages($message, $parsedRule, $inputName)
+    {
+        if ($parsedRule['name'] == 'same') {
+            $message = ['data-msg-equalto' => str_replace(':other', $this->getAttributeName($parsedRule['parameters'][0]), $message[array_keys($message)[0]])];
+            $message = ['data-msg-equalto' => str_replace($inputName, $this->getAttributeName($inputName), $message[array_keys($message)[0]])];
+        }
+
+
+        return $message;
+    }
 
 }
