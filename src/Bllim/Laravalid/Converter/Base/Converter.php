@@ -1,4 +1,7 @@
 <?php namespace Bllim\Laravalid\Converter\Base;
+
+use Bllim\Laravalid\Helper;
+
 /**
  * Base converter class for converter plugins
  * 
@@ -173,6 +176,10 @@ abstract class Converter {
 			{
 				return 'numeric';
 			}
+			elseif ($parsedRule['name'] === 'array')
+			{
+				return 'array';
+			}
 		}
 
 		return 'string';
@@ -201,21 +208,10 @@ abstract class Converter {
 	 */
 	protected function getDefaultErrorMessage($laravelRule, $attribute)
 	{
-		// getting user friendly attribute name
-		$attribute = $this->getAttributeName($attribute);
-		$message = \Lang::get('validation.'.$laravelRule, ['attribute' => $attribute]);
+		// getting user friendly validation message
+		$message = Helper::getValidationMessage($attribute, $laravelRule);
 
 		return ['data-msg-'.$laravelRule => $message];
-	}
-
-	/**
-	 * Get user friendly attribute name
-	 *
-	 * @return string
-	 */
-	protected function getAttributeName($attribute)
-	{
-		return !\Lang::has('validation.attributes.'.$attribute) ? $attribute : \Lang::get('validation.attributes.'.$attribute);
 	}
 
 }
