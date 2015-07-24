@@ -82,14 +82,14 @@ The package uses laravel Form Builder to make validation rules work for both sid
     Form::text('birthdate');
     Form::close(); // don't forget to close form, it reset validation rules
 ```
-Also if you don't want to struggle with $rules at view files, you can set it in Controller or route by using Form::setValidation . This sets rules for first Form::open
+Also if you don't want to struggle with $rules at view files, you can set it in Controller or route with or without form name by using Form::setValidation($rules, $formName). If you don't give form name, this sets rules for first Form::open
 ```php    
     // in controller or route
     $rules = ['name' => 'required|max:100', 'email' => 'required|email', 'birthdate' => 'date'];
-    Form::setValidation($rules);
+    Form::setValidation($rules, 'firstForm'); // you can also use without giving form name Form::setValidation($rules) because there is just one.
     
     // in view
-    Form::open(array('url' => 'foo/bar', 'method' => 'put'), $rules);
+    Form::open(array('url' => 'foo/bar', 'method' => 'put', 'name' => 'firstForm'), $rules);
     // some form inputs
     Form::close();
 ```

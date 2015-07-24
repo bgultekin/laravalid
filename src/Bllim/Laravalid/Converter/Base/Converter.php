@@ -42,6 +42,13 @@ abstract class Converter {
 	 */
 	protected $validationRules = [];
 
+	/**
+	 * Current form name
+	 *
+	 * @var string
+	 */
+	protected $currentFormName = null;
+
 
 	/**
 	 * Rules which specify input type is numeric
@@ -78,10 +85,11 @@ abstract class Converter {
 	 * @param array $rules 		Laravel validation rules
 	 *
 	 */
-	public function set($rules)
+	public function set($rules, $formName = null)
 	{
 		if($rules === null) return;
-		$this->validationRules = $rules;
+
+		$this->validationRules[$formName] = $rules;
 	}
 
 	/**
@@ -90,7 +98,25 @@ abstract class Converter {
 	 */
 	public function reset()
 	{
-		$this->validationRules = [];
+		if(isset($this->validationRules[$this->currentFormName]))
+		{
+			unset($this->validationRules[$this->currentFormName]);
+		}
+		else if(isset($this->validationRules[null]))
+		{
+			unset($this->validationRules[null]);
+		}
+	}
+
+	/**
+	 * Set form name in order to get related validation rules
+	 *
+	 * @param array $formName 		Form name
+	 *
+	 */
+	public function setFormName($formName)
+	{
+		$this->currentFormName = $formName;
 	}
 
 
@@ -102,7 +128,16 @@ abstract class Converter {
 	 */
 	public function getValidationRules()
 	{
-		return $this->validationRules;
+		if(isset($this->validationRules[$this->currentFormName]))
+		{
+			return $this->validationRules[$this->currentFormName];
+		}
+		else if(isset($this->validationRules[null]))
+		{
+			return $this->validationRules[null];			
+		}
+
+		return null;
 	}
 
 	/**
@@ -112,9 +147,9 @@ abstract class Converter {
 	 */
 	protected function getValidationRule($inputName)
 	{
-		return is_array($this->validationRules[$inputName])
-		 ? $this->validationRules[$inputName]
-		 : explode('|', $this->validationRules[$inputName]);
+		return is_array($this->getValidationRules()[$inputName])
+		 ? $this->getValidationRules()[$inputName]
+		 : explode('|', $this->getValidationRules()[$inputName]);
 	}
 
 	/**
@@ -124,7 +159,7 @@ abstract class Converter {
 	 */
 	protected function checkValidationRule($inputName)
 	{
-		return isset($this->validationRules[$inputName]);
+		return isset($this->getValidationRules()[$inputName]);
 	}
 
 

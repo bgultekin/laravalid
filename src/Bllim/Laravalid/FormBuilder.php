@@ -38,9 +38,9 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 	 * @param array $rules 		Laravel validation rules
 	 *
 	 */
-	public function setValidation($rules)
+	public function setValidation($rules, $formName = null)
 	{
-		$this->converter()->set($rules);
+		$this->converter()->set($rules, $formName);
 	}
 
 	/**
@@ -73,6 +73,15 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 	public function open(array $options = array(), $rules = null)
 	{
 		$this->setValidation($rules);
+
+		if(isset($options['name']))
+		{
+			$this->converter->setFormName($options['name']);
+		}
+		else
+		{
+			$this->converter->setFormName(null);
+		}
 		
 		return parent::open($options);
 	}
