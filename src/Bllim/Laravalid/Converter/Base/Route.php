@@ -32,11 +32,23 @@ abstract class Route extends Container {
 
 	public function defaultRoute($name, $parameters)
 	{
+		$params = Helper::decrypt($parameters['params']);
+		unset($parameters['params']);
+
+		$rules = array();
+		foreach ($parameters as $k => $v)
+		{
+			$rules[$k] = $name . ':' . $params;
+		}
+
 		$validator = \Validator::make(
-		    array('input' => $parameters['value']),
-		    array('input' => $name.':'.Helper::decrypt($parameters['validationParameters']))
+		    $parameters,
+		    $rules
 		);
 
-		return ['valid' => !$validator->fails(), 'messages' => $validator->messages()];
+		if (!$validator->fails())
+			return \Response::json(true);
+
+		return \Response::json($validator->messages()->first());
 	}
 }
