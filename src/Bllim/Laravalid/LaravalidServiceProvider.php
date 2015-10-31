@@ -48,7 +48,7 @@ class LaravalidServiceProvider extends ServiceProvider {
         {
 			$this->app->bindShared('html', function($app)
 			{
-				return new \Illuminate\Html\HtmlBuilder($app['url']);
+				return new \Collective\Html\HtmlBuilder($app['url']);
 			});
         }
 
