@@ -29,7 +29,7 @@ This package makes validation rules defined in laravel work client-side by conve
 
 ### Installation
 
-Require `bllim/laravel-validation-for-client-side` in composer.json and run `composer update`.
+Require `bllim/laravalid` in composer.json and run `composer update`.
 
     {
         "require": {
