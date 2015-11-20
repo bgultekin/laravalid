@@ -33,7 +33,7 @@ Require `bllim/laravalid` in composer.json and run `composer update`.
 
     {
         "require": {
-            "laravel/framework": "5.0.*",
+            "laravel/framework": "5.1.*",
             ...
             "bllim/laravalid": "*"
         }
@@ -52,7 +52,7 @@ Composer will download the package. After the package is downloaded, open `confi
 ```php
     'aliases' => array(
         ...
-            'HTML'      => 'Illuminate\Support\Facades\HTML', // if not exists add for html too
+            'HTML'      => 'Collective\Html\HtmlFacade::class', // if not exists add for html too
             'Form'      => 'Bllim\Laravalid\Facade',
     ),
 ```

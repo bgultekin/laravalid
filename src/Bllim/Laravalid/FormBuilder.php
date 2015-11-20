@@ -1,6 +1,6 @@
 <?php namespace Bllim\Laravalid;
 /**
- * This class is extending \Illuminate\Html\FormBuilder to make 
+ * This class is extending \Collective\Html\FormBuilder to make 
  * validation easy for both client and server side. Package convert 
  * laravel validation rules to javascript validation plugins while 
  * using laravel FormBuilder.
@@ -16,16 +16,16 @@
  * @package    Laravel Validation For Client-Side
  * @author     Bilal Gultekin <bilal@bilal.im>
  * @license    MIT
- * @see        Illuminate\Html\FormBuilder
+ * @see        Collective\Html\FormBuilder
  * @version    0.9
  */
 use Lang;
 
-class FormBuilder extends \Illuminate\Html\FormBuilder {
+class FormBuilder extends \Collective\Html\FormBuilder {
 
 	protected $converter;
 
-	public function __construct(\Illuminate\Html\HtmlBuilder $html, \Illuminate\Routing\UrlGenerator $url, $csrfToken, Converter\Base\Converter $converter)
+	public function __construct(\Collective\Html\HtmlBuilder $html, \Illuminate\Routing\UrlGenerator $url, $csrfToken, Converter\Base\Converter $converter)
 	{
 		parent::__construct($html, $url, $csrfToken);
 		$plugin = \Config::get('laravalid.plugin');

@@ -165,6 +165,9 @@ abstract class Converter {
 
 	public function convert($inputName)
 	{		
+
+		$inputName = $this->formatInputName($inputName);
+		
 		$outputAttributes = [];
 
 		if($this->checkValidationRule($inputName) === false)
@@ -247,6 +250,27 @@ abstract class Converter {
 		$message = Helper::getValidationMessage($attribute, $laravelRule);
 
 		return ['data-msg-'.$laravelRule => $message];
+	}
+
+	/** 
+	 * Format recursive array like input names to laravel validation format
+	 * Example name[en] will transform to name.en
+	 * @param  string $inputName 
+	 * @return string
+	 */
+	protected function formatInputName($inputName)
+	{
+		preg_match_all("/\[(\s*[\w]*\s*)\]/", $inputName, $output, PREG_PATTERN_ORDER);
+		
+		if(!isset($output[1])) return $inputName;
+
+		$replaceWith = $output[1];
+		$replace     = $output[0];
+
+		foreach($replaceWith as $key => $r) 
+			$replaceWith[$key] = '.' . $r;
+		
+		return str_replace($replace, $replaceWith, $inputName);
 	}
 
 }
