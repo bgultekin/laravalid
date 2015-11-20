@@ -33,7 +33,7 @@ Require `bllim/laravalid` in composer.json and run `composer update`.
 
     {
         "require": {
-            "laravel/framework": "5.1.*",
+            "laravel/framework": "5.1.*", //or "5.0.*"
             ...
             "bllim/laravalid": "*"
         }
