@@ -1,7 +1,11 @@
-<?php namespace Bllim\Laravalid;
+<?php
 
-class Facade extends \Illuminate\Support\Facades\Facade {
+namespace Bllim\Laravalid;
 
-    protected static function getFacadeAccessor() { return 'laravalid'; }
-
+class Facade extends \Illuminate\Support\Facades\Facade
+{
+    protected static function getFacadeAccessor()
+    {
+        return 'laravalid';
+    }
 }
