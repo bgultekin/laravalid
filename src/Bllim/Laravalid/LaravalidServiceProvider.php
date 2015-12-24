@@ -43,13 +43,13 @@ class LaravalidServiceProvider extends ServiceProvider {
         
         if(!isset($this->app['html']))
         {
-			$this->app->bindShared('html', function($app)
+			$this->app->singleton('html', function($app)
 			{
 				return new \Collective\Html\HtmlBuilder($app['url']);
 			});
         }
 
-        $this->app->bindShared('laravalid', function ($app) {
+        $this->app->singleton('laravalid', function ($app) {
             	$plugin = \Config::get('laravalid.plugin');
             	$converterClassName = 'Bllim\Laravalid\Converter\\'.$plugin.'\Converter';
             	$converter = new $converterClassName();
