@@ -1,5 +1,5 @@
 {
-    "name": "bllim/laravalid",
+    "name": "filpgame/laravalid",
     "description": "This package makes validation rules defined in laravel work client-side by converting to html/js plugins such as jquery validation. It also allows to use laravel validation messages so you can show same messages for both sides.",
     "keywords" : ["laravel","laravel5","validation","laravel validation","client-side","client side","laravel validation converter","laravel validation for client-side", "jquery validation", "bootstrap validation"],
     "license": "MIT",
@@ -7,6 +7,9 @@
         {
             "name": "Bilal Gultekin",
             "email": "bilal@bilal.im"
+        },{
+            "name": "Felipe Rodrigues",
+            "email": "filpgame@gmail.com"
         }
     ],
     "require": {
