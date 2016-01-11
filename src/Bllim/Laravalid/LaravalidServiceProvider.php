@@ -45,7 +45,7 @@ class LaravalidServiceProvider extends ServiceProvider {
         {
 			$this->app->singleton('html', function($app)
 			{
-				return new \Collective\Html\HtmlBuilder($app['url']);
+				return new \Collective\Html\HtmlBuilder($app['url'], $app['view']);
 			});
         }
 
@@ -54,7 +54,7 @@ class LaravalidServiceProvider extends ServiceProvider {
             	$converterClassName = 'Bllim\Laravalid\Converter\\'.$plugin.'\Converter';
             	$converter = new $converterClassName();
 
-				$form = new FormBuilder($app->make('html'), $app->make('url'), $app->make('session.store')->getToken(), $converter);
+				$form = new FormBuilder($app->make('html'), $app->make('url'), $app->make('session.store')->getToken(), $converter, $app['view']);
 				return $form->setSessionStore($app->make('session.store'));
             }
         );
