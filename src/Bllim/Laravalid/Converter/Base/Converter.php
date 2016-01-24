@@ -232,11 +232,25 @@ abstract class Converter {
 	{
 		$ruleArray = ['name' => '', 'parameters' => []];
 
-		$explodedRule = explode(':', $rule);
+		$explodedRule = explode(':', $rule, 2);
 		$ruleArray['name'] = array_shift($explodedRule);
-		$ruleArray['parameters'] = explode(',', array_shift($explodedRule));
+		$ruleArray['parameters'] = $this->parseParameters($ruleArray['name'], array_shift($explodedRule));
 
 		return $ruleArray;
+	}
+
+	/**
+	 * Parse a parameter list.
+	 *
+	 * @param  string  $rule
+	 * @param  string  $parameter
+	 * @return array
+	 */
+	protected function parseParameters($rule, $parameter)
+	{
+		if (strtolower($rule) == 'regex') return array($parameter);
+
+		return str_getcsv($parameter);
 	}
 
 	/**
