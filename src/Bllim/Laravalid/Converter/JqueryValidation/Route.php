@@ -1,8 +1,7 @@
-<?php namespace Bllim\Laravalid\Converter\JqueryValidation;
+<?php
 
-use Lang;
+namespace Bllim\Laravalid\Converter\JqueryValidation;
 
-class Route extends \Bllim\Laravalid\Converter\Base\Route {
-
-
+class Route extends \Bllim\Laravalid\Converter\Base\Route
+{
 }

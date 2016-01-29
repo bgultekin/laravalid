@@ -1,7 +1,7 @@
 <?php
 
 return [
-	'useLaravelMessages'	=>	true,
-	'plugin'	=>	'JqueryValidation',
-	'route'	=>	'laravalid'
+    'useLaravelMessages'    => true,
+    'plugin'                => 'JqueryValidation',
+    'route'                 => 'laravalid',
 ];
