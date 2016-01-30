@@ -1,5 +1,3 @@
-#Important: [Looking For Collaborators](https://github.com/bllim/laravalid/issues/40)
-
 #Laravalid 
 #### Laravel Validation For Client Side
 
