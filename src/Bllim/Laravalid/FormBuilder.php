@@ -20,14 +20,17 @@
  * @version    0.9
  */
 use Lang;
+use Illuminate\Contracts\View\Factory;
+use Collective\Html\HtmlBuilder;
+use Illuminate\Routing\UrlGenerator;
 
 class FormBuilder extends \Collective\Html\FormBuilder {
 
 	protected $converter;
 
-	public function __construct(\Collective\Html\HtmlBuilder $html, \Illuminate\Routing\UrlGenerator $url, $csrfToken, Converter\Base\Converter $converter)
+	public function __construct(HtmlBuilder $html, UrlGenerator $url, Factory $view, $csrfToken, $converter)
 	{
-		parent::__construct($html, $url, $csrfToken);
+		parent::__construct($html, $url, $view, $csrfToken);
 		$plugin = \Config::get('laravalid.plugin');
 		$this->converter = $converter;
 	}
