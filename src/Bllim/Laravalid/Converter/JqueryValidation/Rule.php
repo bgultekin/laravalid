@@ -140,5 +140,9 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 		return ['data-rule-remote' => url('/' . $route . '/exists').'?params=' . $encrpytedParam];
 	}
 
+	public function confirmed($parsedRule, $attribute, $type)
+	{
+		return ['data-rule-equalto' => '#' . $attribute . '_confirmation'];
+	}
 
 }

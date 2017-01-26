@@ -83,4 +83,10 @@ class Message extends \Bllim\Laravalid\Converter\Base\Message {
 		}
 	}
 
+	public function confirmed($parsedRule, $attribute, $type)
+	{
+		$message = Helper::getValidationMessage($attribute, $parsedRule['name']);
+		return ['data-msg-equalto' => $message];
+	}
+
 }
