@@ -16,7 +16,7 @@ class Message extends \Bllim\Laravalid\Converter\Base\Message
 
     public function same($parsedRule, $attribute, $type)
     {
-        $message = Lang::get('validation.'.$parsedRule['name'], ['attribute' => $attribute]);
+        $message = Helper::getValidationMessage($attribute, $parsedRule['name'], ['other' => $parsedRule['parameters'][0]]);
 
         return ['data-msg-equalto' => $message];
     }
