@@ -1,4 +1,4 @@
-#Laravalid 
+# Laravalid 
 #### Laravel Validation For Client Side
 
 This package makes validation rules defined in laravel work client-side by converting to html/js plugins such as jquery validation. It also allows to use laravel validation messages so you can show same messages for both sides.
@@ -13,7 +13,7 @@ This package makes validation rules defined in laravel work client-side by conve
  - [Plugins and Supported Rules](#plugins-and-supported-rules)
  - [Known Issues](#knownissues)
  - [To Do](#todo)
- - [Changelog](#changelog)
+ - [Contributors](#contributors)
  - [Licence](#licence)
 
 
@@ -260,9 +260,13 @@ You can look at existed methods and plugins to understand how it works. Explanat
 - Improve doc
 - Comment code
 
-### Changelog
-**v1.0**
-- Initial commit
+### Contributors
+- @bllim
+- @phpspider
+- @jannispl
+- @rene-springmann
+
+and [more](https://github.com/bllim/laravalid/graphs/contributors)
 
 ### License
 Licensed under the MIT License
