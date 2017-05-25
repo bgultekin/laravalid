@@ -54,7 +54,7 @@ class LaravalidServiceProvider extends ServiceProvider
                 $converterClassName = 'Bllim\Laravalid\Converter\\'.$plugin.'\Converter';
                 $converter = new $converterClassName();
 
-                $form = new FormBuilder($app->make('html'), $app->make('url'), $app->make('view'), $app->make('session.store')->token(), $converter);
+                $form = new FormBuilder($app->make('html'), $app->make('url'), $app->make('session.store')->getToken(), $converter);
 
                 return $form->setSessionStore($app->make('session.store'));
             }

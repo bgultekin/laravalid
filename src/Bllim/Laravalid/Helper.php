@@ -42,11 +42,6 @@ class Helper
         }
 
         $niceName = !\Lang::has('validation.attributes.'.$attribute) ? $attribute : \Lang::get('validation.attributes.'.$attribute);
-        
-        //reform data so that all fields have nice names
-        foreach ($data as $key => $fieldName) {
-            $data[$key] = !\Lang::has('validation.attributes.'.$fieldName) ? $fieldName : \Lang::get('validation.attributes.'.$fieldName);
-        }
 
         return \Lang::get('validation.'.$path, $data + ['attribute' => $niceName]);
     }

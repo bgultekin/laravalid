@@ -27,9 +27,9 @@ class FormBuilder extends \Collective\Html\FormBuilder
 {
     protected $converter;
 
-    public function __construct(\Collective\Html\HtmlBuilder $html, \Illuminate\Routing\UrlGenerator $url, \Illuminate\View\Factory $view, $csrfToken, Converter\Base\Converter $converter)
+    public function __construct(\Collective\Html\HtmlBuilder $html, \Illuminate\Routing\UrlGenerator $url, $csrfToken, Converter\Base\Converter $converter)
     {
-        parent::__construct($html, $url, $view, $csrfToken);
+        parent::__construct($html, $url, $csrfToken);
         $plugin = \Config::get('laravalid.plugin');
         $this->converter = $converter;
     }
