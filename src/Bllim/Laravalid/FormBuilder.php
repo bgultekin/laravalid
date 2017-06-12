@@ -119,13 +119,8 @@ class FormBuilder extends \Collective\Html\FormBuilder
     /**
      * @see Illuminate\Html\FormBuilder
      */
-    public function select(
-        $name,
-        $list = [],
-        $selected = null,
-        array $selectAttributes = [],
-        array $optionsAttributes = []
-    ){
+    public function select($name, $list = [], $selected = null, array $selectAttributes = [], array $optionsAttributes = [])
+    {
         $optionsAttributes = $this->converter->convert(Helper::getFormAttribute($name)) + $optionsAttributes;
         $selectAttributes = $this->converter->convert(Helper::getFormAttribute($name)) + $selectAttributes;
 
