@@ -9,46 +9,36 @@
  * @version    0.9
  */
 
-use Bllim\Laravalid\Helper;
-
 abstract class Route extends Container {
 
-	public function convert($name, $parameters)
+	public function convert($name, $parameters = [])
 	{
-		$methodName = strtolower($name);
-
-		if(isset($this->customMethods[$methodName]))
-		{
-			return call_user_func_array($this->customMethods[$methodName], $parameters);
-		}
-
-		if(method_exists($this, $methodName))
-		{
-			return call_user_func_array([$this, $methodName], $parameters);
-		}
+		if (!is_null($result = parent::convert($name, $parameters)))
+			return $result;
 
 		return $this->defaultRoute($name, $parameters);
 	}
 
-	public function defaultRoute($name, $parameters)
+	protected function defaultRoute($name, $parameters = [])
 	{
-		$params = Helper::decrypt($parameters['params']);
-		unset($parameters['params']);
+		$params = empty($parameters['params']) ? []
+			: array_map('Bllim\Laravalid\Helper::decrypt', is_array($parameters['params']) ? $parameters['params'] : array($parameters['params']));
+		unset($parameters['params'], $parameters['_']);
 
 		$rules = array();
-		foreach ($parameters as $k => $v)
+		// allow multiple `remote` rules
+		foreach (explode('-', $name) as $i => $rule)
 		{
-			$rules[$k] = $name . ':' . $params;
+			foreach ($parameters as $k => $v)
+				$rules[$k][] = empty($params[$i]) ? $rule : $rule . ':' . $params[$i];
 		}
 
-		$validator = \Validator::make(
-		    $parameters,
-		    $rules
-		);
+		$validator = \Validator::make($parameters, $rules);
 
 		if (!$validator->fails())
 			return \Response::json(true);
 
 		return \Response::json($validator->messages()->first());
 	}
+
 }

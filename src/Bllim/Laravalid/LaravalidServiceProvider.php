@@ -5,85 +5,58 @@ use Illuminate\Support\ServiceProvider;
 class LaravalidServiceProvider extends ServiceProvider {
 
 	/**
-	 * Indicates if loading of the provider is deferred.
-	 *
-	 * @var bool
+	 * {@inheritdoc}
 	 */
 	protected $defer = false;
 
 	/**
-	 * Bootstrap the application events.
-	 *
-	 * @return void
+	 * {@inheritdoc}
 	 */
 	public function boot()
 	{
 		$this->package('bllim/laravalid', 'laravalid');
 
-		$routeName = \Config::get('laravalid.route');
+		// register routes for `remote` validations
+		$app = $this->app;
+		$routeName = $app['config']->get('laravalid::route');
 
-		// remote validations
-		\Route::any($routeName.'/{rule}', function($rule){
-			return $this->app['laravalid']->converter()->route()->convert($rule, \Input::all());
-		});
-
+		$app['router']->any($routeName . '/{rule}', function ($rule) use ($app) {
+			return $app['laravalid']->converter()->route()->convert($rule, $app['request']->all());
+		})->where('rule', '[\w-]+');
 	}
 
 	/**
-	 * Register the service provider.
-	 *
-	 * @return void
+	 * {@inheritdoc}
 	 */
 	public function register()
 	{
-		$this->registerResources();
-        
-        if(!isset($this->app['html']))
-        {
+		// try to register the HTML builder instance
+		if (!$this->app->bound('html')) {
 			$this->app->bindShared('html', function($app)
 			{
 				return new \Illuminate\Html\HtmlBuilder($app['url']);
 			});
-        }
+		}
 
-        $this->app->bindShared('laravalid', function ($app) {
-            	$plugin = \Config::get('laravalid.plugin');
-            	$converterClassName = 'Bllim\Laravalid\Converter\\'.$plugin.'\Converter';
-            	$converter = new $converterClassName();
+		// register the new form builder instance
+		$this->app->bindShared('laravalid', function ($app) {
+			/* @var $app \Illuminate\Foundation\Application */
+			$plugin = $app['config']->get('laravalid::plugin');
+			$converterClass = (strpos($plugin, '\\') === false ? 'Bllim\Laravalid\Converter\\' : '') . $plugin . '\Converter';
 
-				$form = new FormBuilder($app->make('html'), $app->make('url'), $app->make('session.store')->getToken(), $converter);
-				return $form->setSessionStore($app->make('session.store'));
-            }
-        );
+			$session = $app['session.store'];
+			$form = new FormBuilder($app['html'], $app['url'], $session->getToken(), new $converterClass);
+
+			return $form->setSessionStore($session);
+		});
 	}
 
 	/**
-	 * Register the package resources.
-	 *
-	 * @return void
-	 */
-	protected function registerResources()
-	{
-	    $userConfigFile    = app_path('config/laravalid/config.php');
-	    $packageConfigFile = __DIR__.'/../../../config/config.php';
-	    $config            = $this->app['files']->getRequire($packageConfigFile);
-
-	    if (file_exists($userConfigFile)) {
-	        $userConfig = $this->app['files']->getRequire($userConfigFile);
-	        $config     = array_replace_recursive($config, $userConfig);
-	    }
-
-	    $this->app['config']->set('laravalid', $config);
-	}
-
-	/**
-	 * Get the services provided by the provider.
-	 *
-	 * @return array
+	 * {@inheritdoc}
 	 */
 	public function provides()
 	{
-		return array();
+		return array('laravalid');
 	}
 
 }

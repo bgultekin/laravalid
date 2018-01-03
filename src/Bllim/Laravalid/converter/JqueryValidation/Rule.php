@@ -1,97 +1,110 @@
 <?php namespace Bllim\Laravalid\Converter\JqueryValidation;
 
-use Lang;
 use Bllim\Laravalid\Helper;
 
 class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 
-	/**
-	 * Rules convertions which return attributes as an array
-	 *
-	 * @param  array ['name' => '', 'parameters' => []]
-	 * @param  array 
-	 * @param  array type of input
-	 * @return  array
-	 */
-	
-	public function email($parsedRule, $attribute, $type) 
+	public function email()
 	{
 		return ['data-rule-email' => 'true'];
 	}
 
-	public function required($parsedRule, $attribute, $type) 
+	public function required()
 	{
-		return ['data-rule-required' => 'true'];
+		return ['required' => 'required'];
 	}
 
-	public function url($parsedRule, $attribute, $type) 
+	public function url()
 	{
 		return ['data-rule-url' => 'true'];
 	}
 
-	public function integer($parsedRule, $attribute, $type) 
+	public function integer()
+	{
+		return ['data-rule-integer' => 'true'];
+	}
+
+	public function numeric()
 	{
 		return ['data-rule-number' => 'true'];
 	}
 
-	public function numeric($parsedRule, $attribute, $type) 
-	{
-		return ['data-rule-number' => 'true'];
-	}
-
-	public function ip($parsedRule, $attribute, $type) 
+	public function ip()
 	{
 		return ['data-rule-ipv4' => 'true'];
 	}
 
-	public function same($parsedRule, $attribute, $type) 
+	public function same($parsedRule)
 	{
-		$value = vsprintf("*[name='%1s']", $parsedRule['parameters']);
+		$value = vsprintf(':input[name=\'%1s\']', $parsedRule['parameters']);
 		return ['data-rule-equalto' => $value];
 	}
 
-	public function regex($parsedRule, $attribute, $type) 
+	public function different($parsedRule)
+	{
+		$value = vsprintf('input[name=\'%1s\']', $parsedRule['parameters']);
+		return ['data-rule-notequalto' => $value];
+	}
+
+	public function regex($parsedRule)
 	{
 		$rule = $parsedRule['parameters'][0];
 
-		if(substr($rule, 0, 1) == substr($rule, -1, 1))
-		{
+		if (substr($rule, 0, 1) == substr($rule, -1, 1)) {
 			$rule = substr($rule, 1, -1);
 		}
 
-		return ['data-rule-regex' => $rule];
+		return ['pattern' => $rule];
 	}
 
-	public function alpha($parsedRule, $attribute, $type) 
+	public function alpha()
 	{
-		return ['data-rule-regex' => "^[A-Za-z _.-]+$"];
+		return ['pattern' => '^[A-Za-z_.-]+$'];
 	}
 
-	public function alphanum($parsedRule, $attribute, $type) 
+	public function alpha_num()
 	{
-		return ['data-rule-regex' => "^[A-Za-z0-9 _.-]+$"];
+		return ['pattern' => '^[A-Za-z0-9_.-]+$'];
 	}
 
-	public function image($parsedRule, $attribute, $type) 
+	public function image()
 	{
-		return ['accept' => "image/*"];
+		return ['accept' => 'image/*'];
 	}
 
-	public function date($parsedRule, $attribute, $type) 
+	public function date()
 	{
-		return ['data-rule-date' => "true"];
+		return ['data-rule-date' => 'true'];
 	}
 
+	public function before($parsedRule)
+	{
+		return ['max' => vsprintf('%1s', $parsedRule['parameters'])];
+	}
+
+	public function after($parsedRule)
+	{
+		return ['min' => vsprintf('%1s', $parsedRule['parameters'])];
+	}
+
+	/**
+	 * Rules conversion which return attributes as an array
+	 *
+	 * @param  array $parsedRule ['name' => '', 'parameters' => []]
+	 * @param  string $attribute
+	 * @param  string $type Type of input
+	 * @return  array
+	 */
 	public function min($parsedRule, $attribute, $type) 
 	{
 		switch ($type) 
 		{
 			case 'numeric':
-				return ['data-rule-min' => vsprintf("%1s", $parsedRule['parameters'])];
+				return ['min' => vsprintf('%1s', $parsedRule['parameters'])];
 				break;
 			
 			default:
-				return ['data-rule-minlength' => vsprintf("%1s", $parsedRule['parameters'])];
+				return ['minlength' => vsprintf('%1s', $parsedRule['parameters'])];
 				break;
 		}
 	}
@@ -101,11 +114,11 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 		switch ($type) 
 		{
 			case 'numeric':
-				return ['data-rule-max' => vsprintf("%1s", $parsedRule['parameters'])];
+				return ['max' => vsprintf('%1s', $parsedRule['parameters'])];
 				break;
 			
 			default:
-				return ['data-rule-maxlength' => vsprintf("%1s", $parsedRule['parameters'])];
+				return ['maxlength' => vsprintf('%1s', $parsedRule['parameters'])];
 				break;
 		}
 	}
@@ -115,30 +128,98 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 		switch ($type) 
 		{
 			case 'numeric':
-				return ['data-rule-range' => vsprintf("%1s,%2s", $parsedRule['parameters'])];
+				return ['data-rule-range' => vsprintf('%1s,%2s', $parsedRule['parameters'])];
 				break;
 			
 			default:
-				return ['data-rule-minlength' => $parsedRule['parameters'][0], 'data-rule-maxlength' =>  $parsedRule['parameters'][1]];
+				return ['data-rule-rangelength' => vsprintf('%1s,%2s', $parsedRule['parameters']), 'maxlength' => vsprintf('%2s', $parsedRule['parameters'])];
 				break;
 		}
 	}
 
-	public function unique($parsedRule, $attribute, $type)
+	protected function remote($method, $parsedRule)
 	{
 		$param = implode(',', $parsedRule['parameters']);
-		$encrpytedParam = Helper::encrypt($param);
-		$route = \Config::get('laravalid.route', 'laravalid');
-		return ['data-rule-remote' => '/' . $route . '/unique?params=' . $encrpytedParam];
+		$encryptedParam = Helper::encrypt($param);
+
+		$route = \Config::get('laravalid::route', 'laravalid');
+		return ['data-rule-remote' => \URL::to($route . '/' . $method . '?params=' . $encryptedParam)];
 	}
 
-	public function exists($parsedRule, $attribute, $type)
+	public function unique($parsedRule)
 	{
-		$param = implode(',', $parsedRule['parameters']);
-		$encrpytedParam = Helper::encrypt($param);
-		$route = \Config::get('laravalid.route', 'laravalid');
-		return ['data-rule-remote' => '/' . $route . '/exists?params=' . $encrpytedParam];
+		return $this->remote(__FUNCTION__, $parsedRule);
 	}
 
+	public function exists($parsedRule)
+	{
+		return $this->remote(__FUNCTION__, $parsedRule);
+	}
+
+	public function required_with($parsedRule)
+	{
+		$value = ':input:enabled[name=\''
+			. implode('\']:not(:checkbox):not(:radio):filled,:input:enabled[name=\'', $parsedRule['parameters'])
+			. '\']:not(:checkbox):not(:radio):filled,input:enabled[name=\''
+			. implode('\']:checked,input:enabled[name=\'', $parsedRule['parameters']) . '\']:checked';
+
+		return ['data-rule-required' => $value];
+	}
+
+	public function required_without($parsedRule)
+	{
+		$value = ':input:enabled[name=\''
+			. implode('\']:not(:checkbox):not(:radio):blank,:input:enabled[name=\'', $parsedRule['parameters'])
+			. '\']:not(:checkbox):not(:radio):blank,input:enabled[name=\''
+			. implode('\']:unchecked,input:enabled[name=\'', $parsedRule['parameters']) . '\']:unchecked';
+
+		return ['data-rule-required' => $value];
+	}
+
+	public function active_url($parsedRule)
+	{
+		return $this->remote(__FUNCTION__, $parsedRule);
+	}
+
+	public function mimes($parsedRule)
+	{
+		// TODO: detect mime-type from extensions then sort and group by
+		return ['accept' => implode(',', $parsedRule['parameters'])];
+	}
+
+	public function mergeOutputAttributes(array $outputAttributes, array &$ruleAttributes, $inputType = null)
+	{
+		// try to merge `remote` rules
+		if (isset($outputAttributes['data-rule-remote']) && isset($ruleAttributes['data-rule-remote']))
+		{
+			$rule = $outputAttributes['data-rule-remote'];
+			$rule = ($rule[0] == '{' && substr($rule, -1) == '}') ? json_decode($rule, true) : array('url' => $rule);
+
+			$mRule = $ruleAttributes['data-rule-remote'];
+			$mRule = ($mRule[0] == '{' && substr($mRule, -1) == '}') ? json_decode($mRule, true) : array('url' => $mRule);
+
+			$regex = '#(?:^|/)' . \Config::get('laravalid::route', 'laravalid') . '/([\w-]+)(\?.*)?$#i';
+			if (preg_match($regex, $mRule['url'], $mm) && preg_match($regex, $rule['url'], $m, PREG_OFFSET_CAPTURE)) {
+				// merge callback URLs
+				$query = empty($m[2][0]) ? (empty($mm[2]) ? '' : $mm[2]) : $m[2][0] . (empty($mm[2]) ? '' : '&' . substr($mm[2], 1));
+				$rule['url'] = substr($rule['url'], 0, $m[1][1]) . $m[1][0] . '-' . $mm[1] . str_replace('params=', 'params[]=', $query);
+
+				// merge data of `remote` rules
+				if (isset($mRule['data']))
+					$rule['data'] = isset($rule['data']) ? ($rule['data'] + $mRule['data']) : $mRule['data'];
+
+				$outputAttributes['data-rule-remote'] = empty($rule['data']) ? $rule['url'] : json_encode($rule, JSON_UNESCAPED_SLASHES);
+				unset($outputAttributes['data-msg-remote'], $ruleAttributes['data-rule-remote']);
+			}
+		}
+
+		$outputAttributes += $ruleAttributes;
+
+		// remove duplicated rule attributes
+		if (!empty($inputType) && isset($ruleAttributes[$k = 'data-rule-' . $inputType]) && strcasecmp('true', $ruleAttributes[$k]) == 0)
+			unset($outputAttributes[$k]);
+
+		return $outputAttributes;
+	}
 
 }

@@ -14,22 +14,27 @@ class Helper {
 
 	public static function encrypt($data)
 	{
-		return \Crypt::encrypt($data);
+		return empty($data) ? $data : \Crypt::encrypt($data);
 	}
 
 	public static function decrypt($data)
 	{
-		return \Crypt::decrypt($data);
+		return empty($data) ? $data : \Crypt::decrypt($data);
 	}
 
 	/**
 	 * Get user friendly validation message
 	 *
+	 * @param string $attribute
+	 * @param string $rule
+	 * @param array $data
+	 * @param string $type
 	 * @return string
+	 * @see Illuminate\Validation\Validator::getMessage()
 	 */
 	public static function getValidationMessage($attribute, $rule, $data = [], $type = null)
 	{
-		$path = $rule;
+		$path = snake_case($rule);
 		if ($type !== null)
 		{
 			$path .= '.' . $type;
@@ -40,7 +45,10 @@ class Helper {
 			$path = 'custom.' . $attribute . '.' . $path;
 		}
 
-		$niceName = !\Lang::has('validation.attributes.'.$attribute) ? $attribute : \Lang::get('validation.attributes.'.$attribute);
+		$niceName = \Lang::get($langKey = 'validation.attributes.' . $attribute);
+		if ($niceName === $langKey) {
+			$niceName = str_replace('_', ' ', snake_case($attribute));
+		}
 
 		return \Lang::get('validation.' . $path, $data + ['attribute' => $niceName]);
 	}
@@ -48,10 +56,12 @@ class Helper {
 	/**
 	 * Get the raw attribute name without array braces
 	 *
+	 * @param string
 	 * @return string
 	 */
 	public static function getFormAttribute($name)
 	{
-		return substr($name, -2) === '[]' ? substr($name, 0, -2) : $name;
+		return ($i = strpos($name, '[')) === false ? $name : substr($name, 0, $i);
 	}
+
 }

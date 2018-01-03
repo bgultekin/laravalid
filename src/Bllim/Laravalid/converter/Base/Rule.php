@@ -11,4 +11,9 @@
 
 abstract class Rule extends Container {
 
+	public function mergeOutputAttributes(array $outputAttributes, array &$ruleAttributes, $inputType = null)
+	{
+		return $outputAttributes + $ruleAttributes;
+	}
+
 }
