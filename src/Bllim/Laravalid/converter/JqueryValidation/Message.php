@@ -1,24 +1,22 @@
 <?php namespace Bllim\Laravalid\Converter\JqueryValidation;
 
-use Bllim\Laravalid\Helper;
-
 class Message extends \Bllim\Laravalid\Converter\Base\Message {
 
 	public function ip($parsedRule, $attribute)
 	{
-		$message = Helper::getValidationMessage($attribute, $parsedRule['name']);
+		$message = $this->getValidationMessage($attribute, $parsedRule['name']);
 		return ['data-msg-ipv4' => $message];
 	}
 	
 	public function same($parsedRule, $attribute)
 	{
-		$message = Helper::getValidationMessage($attribute, $parsedRule['name'], ['other' => vsprintf('%1s', $parsedRule['parameters'])]);
+		$message = $this->getValidationMessage($attribute, $parsedRule['name'], ['other' => vsprintf('%1s', $parsedRule['parameters'])]);
 		return ['data-msg-equalto' => $message];
 	}
 	
 	public function different($parsedRule, $attribute)
 	{
-		$message = Helper::getValidationMessage($attribute, $parsedRule['name'], ['other' => vsprintf('%1s', $parsedRule['parameters'])]);
+		$message = $this->getValidationMessage($attribute, $parsedRule['name'], ['other' => vsprintf('%1s', $parsedRule['parameters'])]);
 		return ['data-msg-notequalto' => $message];
 	}
 	
@@ -34,37 +32,37 @@ class Message extends \Bllim\Laravalid\Converter\Base\Message {
 
 	public function regex($parsedRule, $attribute)
 	{
-		$message = Helper::getValidationMessage($attribute, $parsedRule['name']);
+		$message = $this->getValidationMessage($attribute, $parsedRule['name']);
 		return ['data-msg-pattern' => $message];
 	}
 
 	public function image($parsedRule, $attribute)
 	{
-		$message = Helper::getValidationMessage($attribute, $parsedRule['name']);
+		$message = $this->getValidationMessage($attribute, $parsedRule['name']);
 		return ['data-msg-accept' => $message];
 	}
 
 	public function before($parsedRule, $attribute)
 	{
-		$message = Helper::getValidationMessage($attribute, $parsedRule['name'], ['date' => '{0}']);
+		$message = $this->getValidationMessage($attribute, $parsedRule['name'], ['date' => '{0}']);
 		return ['data-msg-max' => $message];
 	}
 
 	public function after($parsedRule, $attribute)
 	{
-		$message = Helper::getValidationMessage($attribute, $parsedRule['name'], ['date' => '{0}']);
+		$message = $this->getValidationMessage($attribute, $parsedRule['name'], ['date' => '{0}']);
 		return ['data-msg-min' => $message];
 	}
 
 	public function numeric($parsedRule, $attribute)
 	{
-		$message = Helper::getValidationMessage($attribute, $parsedRule['name']);
+		$message = $this->getValidationMessage($attribute, $parsedRule['name']);
 		return ['data-msg-number' => $message];
 	}
 
 	public function max($parsedRule, $attribute, $type)
 	{
-		$message = Helper::getValidationMessage($attribute, $parsedRule['name'], ['max' => '{0}'], $type);
+		$message = $this->getValidationMessage($attribute, $parsedRule['name'], ['max' => '{0}'], $type);
 		switch ($type) {
 			case 'numeric':
 				return ['data-msg-max' => $message];
@@ -78,7 +76,7 @@ class Message extends \Bllim\Laravalid\Converter\Base\Message {
 	
 	public function min($parsedRule, $attribute, $type)
 	{
-		$message = Helper::getValidationMessage($attribute, $parsedRule['name'], ['min' => '{0}'], $type);
+		$message = $this->getValidationMessage($attribute, $parsedRule['name'], ['min' => '{0}'], $type);
 		switch ($type) {
 			case 'numeric':
 				return ['data-msg-min' => $message];
@@ -92,7 +90,7 @@ class Message extends \Bllim\Laravalid\Converter\Base\Message {
 	
 	public function between($parsedRule, $attribute, $type)
 	{
-		$message = Helper::getValidationMessage($attribute, $parsedRule['name'], ['min' => '{0}', 'max' => '{1}'], $type);
+		$message = $this->getValidationMessage($attribute, $parsedRule['name'], ['min' => '{0}', 'max' => '{1}'], $type);
 		switch ($type) {
 			case 'numeric':
 				return ['data-msg-range' => $message];
@@ -106,7 +104,7 @@ class Message extends \Bllim\Laravalid\Converter\Base\Message {
 
 	public function unique($parsedRule, $attribute)
 	{
-		$message = Helper::getValidationMessage($attribute, $parsedRule['name']);
+		$message = $this->getValidationMessage($attribute, $parsedRule['name']);
 		return ['data-msg-remote' => $message];
 	}
 
@@ -117,7 +115,7 @@ class Message extends \Bllim\Laravalid\Converter\Base\Message {
 
 	public function required_with($parsedRule, $attribute)
 	{
-		$message = Helper::getValidationMessage($attribute, $parsedRule['name'], ['values' => implode(', ', $parsedRule['parameters'])]);
+		$message = $this->getValidationMessage($attribute, $parsedRule['name'], ['values' => implode(', ', $parsedRule['parameters'])]);
 		return ['data-msg-required' => $message];
 	}
 
@@ -133,7 +131,7 @@ class Message extends \Bllim\Laravalid\Converter\Base\Message {
 
 	public function mimes($parsedRule, $attribute)
 	{
-		$message = Helper::getValidationMessage($attribute, $parsedRule['name'], ['values' => implode(', ', $parsedRule['parameters'])]);
+		$message = $this->getValidationMessage($attribute, $parsedRule['name'], ['values' => implode(', ', $parsedRule['parameters'])]);
 		return ['data-msg-accept' => $message];
 	}
 

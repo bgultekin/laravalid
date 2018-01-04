@@ -1,7 +1,4 @@
 <?php namespace Bllim\Laravalid\Converter\Base;
-
-use Bllim\Laravalid\Helper;
-
 /**
  * Base converter class for converter plugins
  * 
@@ -64,12 +61,26 @@ abstract class Converter {
 	 */
 	protected static $numericRules = ['integer', 'numeric', 'digits', 'digits_between'];
 
-	public function __construct()
+	/**
+	 * @var bool
+	 */
+	protected $useLaravelMessages;
+
+	/**
+	 * @param \Illuminate\Foundation\Application $app
+	 */
+	public function __construct($app)
 	{
+		/* @var $config \Illuminate\Config\Repository */
+		$config = $app['config'];
+		$routeUrl = $app['url']->to($config->get('laravalid::route', 'laravalid'));
+
 		$ns = substr(static::class, 0, -9) ?: '\\';
-		($class = $ns . 'Rule') and static::$rule = new $class;
-		($class = $ns . 'Message') and static::$message = new $class;
-		($class = $ns . 'Route') and static::$route = new $class;
+		($class = $ns . 'Rule') and static::$rule = new $class($routeUrl, $app['encrypter']);
+		($class = $ns . 'Message') and static::$message = new $class($app['translator']);
+		($class = $ns . 'Route') and static::$route = new $class($app['validator'], $app['encrypter']);
+
+		$this->useLaravelMessages = $config->get('laravalid::useLaravelMessages', true);
 	}
 
 	public function rule()
@@ -158,7 +169,7 @@ abstract class Converter {
 			if (!empty($ruleAttributes))
 				$outputAttributes = $this->rule()->mergeOutputAttributes($outputAttributes, $ruleAttributes, $inputType);
 
-			if (\Config::get('laravalid::useLaravelMessages', true))
+			if ($this->useLaravelMessages)
 			{
 				$messageAttributes = $this->message()->convert($parsedRule['name'], [$parsedRule, $inputName, $type]);
 
@@ -236,7 +247,7 @@ abstract class Converter {
 	protected function getDefaultErrorMessage($laravelRule, $attribute)
 	{
 		// getting user friendly validation message
-		$message = Helper::getValidationMessage($attribute, $laravelRule);
+		$message = $this->message()->getValidationMessage($attribute, $laravelRule);
 		return ['data-msg-' . $laravelRule => $message];
 	}
 

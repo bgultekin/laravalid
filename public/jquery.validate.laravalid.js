@@ -40,7 +40,7 @@ $.validator.addMethod("accept", function (value, element, param) {
 
 	// Split mime on commas in case we have multiple types we can accept
 	var typeParam = typeof param === "string" ? param.replace(/\s+/g, "") : "image/*",
-	// Escape string to be used in the regex
+		// Escape string to be used in the regex
 		regex = new RegExp(".?(" + typeParam.replace(/[\-\[\]\/\{}\(\)\+\?\.\\\^\$\|]/g, "\\$&").replace(/,/g, "|").replace(/\/\*/g, "/.*") + ")$", "i");
 
 	// Grab the mime-type from the loaded file, verify it matches

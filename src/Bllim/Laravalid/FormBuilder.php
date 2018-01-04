@@ -134,7 +134,11 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 
 	protected function getValidationAttributes($name, $type = null)
 	{
-		return $this->converter()->convert(Helper::getFormAttribute($name), $type);
+		// raw attribute name without array braces
+		if (($i = strpos($name, '[')) !== false)
+			$name = substr($name, 0, $i);
+
+		return $this->converter()->convert($name, $type);
 	}
 
 }

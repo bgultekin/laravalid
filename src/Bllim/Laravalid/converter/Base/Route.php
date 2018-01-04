@@ -1,4 +1,7 @@
 <?php namespace Bllim\Laravalid\Converter\Base;
+
+use Illuminate\Support\Facades\Response;
+
 /**
  * Some description...
  * 
@@ -11,6 +14,22 @@
 
 abstract class Route extends Container {
 
+	/**
+	 * @var \Illuminate\Validation\Factory
+	 */
+	protected $validatorFactory;
+
+	/**
+	 * @var \Illuminate\Encryption\Encrypter
+	 */
+	protected $encrypter;
+
+	public function __construct($validatorFactory, $encrypter)
+	{
+		$this->validatorFactory = $validatorFactory;
+		$this->encrypter = $encrypter;
+	}
+
 	public function convert($name, $parameters = [])
 	{
 		if (!is_null($result = parent::convert($name, $parameters)))
@@ -21,9 +40,7 @@ abstract class Route extends Container {
 
 	protected function defaultRoute($name, $parameters = [])
 	{
-		$params = empty($parameters['params']) ? []
-			: array_map('Bllim\Laravalid\Helper::decrypt', is_array($parameters['params']) ? $parameters['params'] : array($parameters['params']));
-		unset($parameters['params'], $parameters['_']);
+		$params = $this->decryptParameters($parameters);
 
 		$rules = array();
 		// allow multiple `remote` rules
@@ -33,12 +50,26 @@ abstract class Route extends Container {
 				$rules[$k][] = empty($params[$i]) ? $rule : $rule . ':' . $params[$i];
 		}
 
-		$validator = \Validator::make($parameters, $rules);
+		$validator = $this->validatorFactory->make($parameters, $rules);
 
 		if (!$validator->fails())
-			return \Response::json(true);
+			return Response::json(true);
 
-		return \Response::json($validator->messages()->first());
+		return Response::json($validator->messages()->first());
+	}
+
+	protected function decryptParameters(array &$parameters)
+	{
+		$params = empty($parameters['params']) ? []
+			: (is_array($parameters['params']) ? $parameters['params'] : array($parameters['params']));
+		unset($parameters['params'], $parameters['_']);
+
+		foreach ($params as &$param) {
+			if (!empty($param))
+				$param = $this->encrypter->decrypt($param);
+		}
+
+		return $params;
 	}
 
 }

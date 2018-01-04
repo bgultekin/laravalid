@@ -1,7 +1,5 @@
 <?php namespace Bllim\Laravalid\Converter\JqueryValidation;
 
-use Bllim\Laravalid\Helper;
-
 class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 
 	public function email()
@@ -42,7 +40,7 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 
 	public function different($parsedRule)
 	{
-		$value = vsprintf('input[name=\'%1s\']', $parsedRule['parameters']);
+		$value = vsprintf(':input[name=\'%1s\']', $parsedRule['parameters']);
 		return ['data-rule-notequalto' => $value];
 	}
 
@@ -140,10 +138,9 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 	protected function remote($method, $parsedRule)
 	{
 		$param = implode(',', $parsedRule['parameters']);
-		$encryptedParam = Helper::encrypt($param);
+		$encryptedParam = empty($param) ? '' : $this->encrypter->encrypt($param);
 
-		$route = \Config::get('laravalid::route', 'laravalid');
-		return ['data-rule-remote' => \URL::to($route . '/' . $method . '?params=' . $encryptedParam)];
+		return ['data-rule-remote' => $this->routeUrl . '/' . $method . '?params=' . $encryptedParam];
 	}
 
 	public function unique($parsedRule)
@@ -184,7 +181,7 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 	public function mimes($parsedRule)
 	{
 		// TODO: detect mime-type from extensions then sort and group by
-		return ['accept' => implode(',', $parsedRule['parameters'])];
+		return ['accept' => '.' . implode(',.', $parsedRule['parameters'])];
 	}
 
 	public function mergeOutputAttributes(array $outputAttributes, array &$ruleAttributes, $inputType = null)
@@ -198,7 +195,7 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 			$mRule = $ruleAttributes['data-rule-remote'];
 			$mRule = ($mRule[0] == '{' && substr($mRule, -1) == '}') ? json_decode($mRule, true) : array('url' => $mRule);
 
-			$regex = '#(?:^|/)' . \Config::get('laravalid::route', 'laravalid') . '/([\w-]+)(\?.*)?$#i';
+			$regex = '#^' . preg_quote($this->routeUrl, '#') . '/([\w-]+)(\?.*)?$#i';
 			if (preg_match($regex, $mRule['url'], $mm) && preg_match($regex, $rule['url'], $m, PREG_OFFSET_CAPTURE)) {
 				// merge callback URLs
 				$query = empty($m[2][0]) ? (empty($mm[2]) ? '' : $mm[2]) : $m[2][0] . (empty($mm[2]) ? '' : '&' . substr($mm[2], 1));

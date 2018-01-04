@@ -11,6 +11,22 @@
 
 abstract class Rule extends Container {
 
+	/**
+	 * @var string
+	 */
+	protected $routeUrl;
+
+	/**
+	 * @var \Illuminate\Encryption\Encrypter
+	 */
+	protected $encrypter;
+
+	public function __construct($routeUrl, $encrypter)
+	{
+		$this->routeUrl = $routeUrl;
+		$this->encrypter = $encrypter;
+	}
+
 	public function mergeOutputAttributes(array $outputAttributes, array &$ruleAttributes, $inputType = null)
 	{
 		return $outputAttributes + $ruleAttributes;

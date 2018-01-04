@@ -58,7 +58,8 @@ Composer will download the package. After the package is downloaded, open `confi
 
 Also you need to publish configuration file and assets by running the following Artisan commands.
 ```bash
-$ php artisan vendor:publish
+$ php artisan config:publish bllim/laravalid
+$ php artisan asset:publish bllim/laravalid
 ```
 
 ### Configuration

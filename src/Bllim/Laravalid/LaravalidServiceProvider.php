@@ -18,7 +18,7 @@ class LaravalidServiceProvider extends ServiceProvider {
 
 		// register routes for `remote` validations
 		$app = $this->app;
-		$routeName = $app['config']->get('laravalid::route');
+		$routeName = $app['config']->get('laravalid::route', 'laravalid');
 
 		$app['router']->any($routeName . '/{rule}', function ($rule) use ($app) {
 			return $app['laravalid']->converter()->route()->convert($rule, $app['request']->all());
@@ -45,7 +45,7 @@ class LaravalidServiceProvider extends ServiceProvider {
 			$converterClass = (strpos($plugin, '\\') === false ? 'Bllim\Laravalid\Converter\\' : '') . $plugin . '\Converter';
 
 			$session = $app['session.store'];
-			$form = new FormBuilder($app['html'], $app['url'], $session->getToken(), new $converterClass);
+			$form = new FormBuilder($app['html'], $app['url'], $session->getToken(), new $converterClass($app));
 
 			return $form->setSessionStore($session);
 		});
