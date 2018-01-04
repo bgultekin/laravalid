@@ -21,7 +21,7 @@ class LaravalidServiceProvider extends ServiceProvider {
 		$routeName = $app['config']->get('laravalid::route', 'laravalid');
 
 		$app['router']->any($routeName . '/{rule}', function ($rule) use ($app) {
-			return $app['laravalid']->converter()->route()->convert($rule, $app['request']->all());
+			return $app['laravalid']->converter()->route()->convert($rule, [$app['request']->all()]);
 		})->where('rule', '[\w-]+');
 	}
 

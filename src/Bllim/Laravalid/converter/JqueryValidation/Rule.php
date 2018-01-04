@@ -46,7 +46,7 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 
 	public function regex($parsedRule)
 	{
-		$rule = $parsedRule['parameters'][0];
+		$rule = vsprintf('%1s', $parsedRule['parameters']);
 
 		if (substr($rule, 0, 1) == substr($rule, -1, 1)) {
 			$rule = substr($rule, 1, -1);

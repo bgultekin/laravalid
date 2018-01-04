@@ -35,7 +35,7 @@ abstract class Route extends Container {
 		if (!is_null($result = parent::convert($name, $parameters)))
 			return $result;
 
-		return $this->defaultRoute($name, $parameters);
+		return $this->defaultRoute($name, reset($parameters) ?: []);
 	}
 
 	protected function defaultRoute($name, $parameters = [])
