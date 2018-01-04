@@ -113,15 +113,6 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 	}
 
 	/**
-	 * {@inheritdoc}
-	 */
-	protected function checkable($type, $name, $value, $checked, $options)
-	{
-		$options += $this->getValidationAttributes($name);
-		return parent::checkable($type, $name, $value, $checked, $options);
-	}
-
-	/**
 	 * Closes form and reset $this->rules
 	 * 
 	 * @return string

@@ -67,7 +67,7 @@ abstract class Converter {
 	protected $useLaravelMessages;
 
 	/**
-	 * @param \Illuminate\Foundation\Application $app
+	 * @param \Illuminate\Container\Container $app
 	 */
 	public function __construct($app)
 	{
@@ -166,8 +166,11 @@ abstract class Converter {
 			$parsedRule = $this->parseValidationRule($rule);
 
 			$ruleAttributes = $this->rule()->convert($parsedRule['name'], [$parsedRule, $inputName, $type]);
-			if (!empty($ruleAttributes))
+			if (!empty($ruleAttributes)) {
 				$outputAttributes = $this->rule()->mergeOutputAttributes($outputAttributes, $ruleAttributes, $inputType);
+
+				if (empty($ruleAttributes)) continue;
+			}
 
 			if ($this->useLaravelMessages)
 			{

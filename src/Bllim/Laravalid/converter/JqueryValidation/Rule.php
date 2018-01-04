@@ -34,19 +34,19 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 
 	public function same($parsedRule)
 	{
-		$value = vsprintf(':input[name=\'%1s\']', $parsedRule['parameters']);
+		$value = vsprintf(':input[name=\'%1$s\']', $parsedRule['parameters']);
 		return ['data-rule-equalto' => $value];
 	}
 
 	public function different($parsedRule)
 	{
-		$value = vsprintf(':input[name=\'%1s\']', $parsedRule['parameters']);
+		$value = vsprintf(':input[name=\'%1$s\']', $parsedRule['parameters']);
 		return ['data-rule-notequalto' => $value];
 	}
 
 	public function regex($parsedRule)
 	{
-		$rule = vsprintf('%1s', $parsedRule['parameters']);
+		$rule = reset($parsedRule['parameters']);
 
 		if (substr($rule, 0, 1) == substr($rule, -1, 1)) {
 			$rule = substr($rule, 1, -1);
@@ -77,12 +77,12 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 
 	public function before($parsedRule)
 	{
-		return ['max' => vsprintf('%1s', $parsedRule['parameters'])];
+		return ['max' => reset($parsedRule['parameters'])];
 	}
 
 	public function after($parsedRule)
 	{
-		return ['min' => vsprintf('%1s', $parsedRule['parameters'])];
+		return ['min' => reset($parsedRule['parameters'])];
 	}
 
 	/**
@@ -98,11 +98,11 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 		switch ($type) 
 		{
 			case 'numeric':
-				return ['min' => vsprintf('%1s', $parsedRule['parameters'])];
+				return ['min' => reset($parsedRule['parameters'])];
 				break;
 			
 			default:
-				return ['minlength' => vsprintf('%1s', $parsedRule['parameters'])];
+				return ['minlength' => reset($parsedRule['parameters'])];
 				break;
 		}
 	}
@@ -112,11 +112,11 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 		switch ($type) 
 		{
 			case 'numeric':
-				return ['max' => vsprintf('%1s', $parsedRule['parameters'])];
+				return ['max' => reset($parsedRule['parameters'])];
 				break;
 			
 			default:
-				return ['maxlength' => vsprintf('%1s', $parsedRule['parameters'])];
+				return ['maxlength' => reset($parsedRule['parameters'])];
 				break;
 		}
 	}
@@ -126,11 +126,11 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 		switch ($type) 
 		{
 			case 'numeric':
-				return ['data-rule-range' => vsprintf('%1s,%2s', $parsedRule['parameters'])];
+				return ['data-rule-range' => vsprintf('%1$s,%2$s', $parsedRule['parameters'])];
 				break;
 			
 			default:
-				return ['data-rule-rangelength' => vsprintf('%1s,%2s', $parsedRule['parameters']), 'maxlength' => vsprintf('%2s', $parsedRule['parameters'])];
+				return ['data-rule-rangelength' => vsprintf('%1$s,%2$s', $parsedRule['parameters']), 'maxlength' => vsprintf('%2$s', $parsedRule['parameters'])];
 				break;
 		}
 	}
@@ -195,7 +195,7 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule {
 			$mRule = $ruleAttributes['data-rule-remote'];
 			$mRule = ($mRule[0] == '{' && substr($mRule, -1) == '}') ? json_decode($mRule, true) : array('url' => $mRule);
 
-			$regex = '#^' . preg_quote($this->routeUrl, '#') . '/([\w-]+)(\?.*)?$#i';
+			$regex = (preg_match('/^\w/', $this->routeUrl) ? '#\b' : '#') . preg_quote($this->routeUrl, '#') . '/([\w-]+)(\?.*)?$#i';
 			if (preg_match($regex, $mRule['url'], $mm) && preg_match($regex, $rule['url'], $m, PREG_OFFSET_CAPTURE)) {
 				// merge callback URLs
 				$query = empty($m[2][0]) ? (empty($mm[2]) ? '' : $mm[2]) : $m[2][0] . (empty($mm[2]) ? '' : '&' . substr($mm[2], 1));

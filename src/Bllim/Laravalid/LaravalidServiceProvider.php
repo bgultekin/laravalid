@@ -2,6 +2,9 @@
 
 use Illuminate\Support\ServiceProvider;
 
+/**
+ * @property \Illuminate\Container\Container $app
+ */
 class LaravalidServiceProvider extends ServiceProvider {
 
 	/**
@@ -40,10 +43,11 @@ class LaravalidServiceProvider extends ServiceProvider {
 
 		// register the new form builder instance
 		$this->app->bindShared('laravalid', function ($app) {
-			/* @var $app \Illuminate\Foundation\Application */
+			/* @var $app \Illuminate\Container\Container */
 			$plugin = $app['config']->get('laravalid::plugin');
 			$converterClass = (strpos($plugin, '\\') === false ? 'Bllim\Laravalid\Converter\\' : '') . $plugin . '\Converter';
 
+			/* @var $session \Illuminate\Session\Store */
 			$session = $app['session.store'];
 			$form = new FormBuilder($app['html'], $app['url'], $session->getToken(), new $converterClass($app));
 

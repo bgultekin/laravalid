@@ -47,12 +47,19 @@ abstract class Message extends Container {
 			$path = 'custom.' . $attribute . '.' . $path;
 		}
 
+		$niceName = $this->getValidationAttribute($attribute);
+
+		return $this->translator->get('validation.' . $path, $data + ['attribute' => $niceName]);
+	}
+
+	protected function getValidationAttribute($attribute)
+	{
 		$niceName = $this->translator->get($langKey = 'validation.attributes.' . $attribute);
 		if ($niceName === $langKey) {
 			$niceName = str_replace('_', ' ', Str::snake($attribute));
 		}
 
-		return $this->translator->get('validation.' . $path, $data + ['attribute' => $niceName]);
+		return $niceName;
 	}
 
 }

@@ -10,13 +10,15 @@ class Message extends \Bllim\Laravalid\Converter\Base\Message {
 	
 	public function same($parsedRule, $attribute)
 	{
-		$message = $this->getValidationMessage($attribute, $parsedRule['name'], ['other' => vsprintf('%1s', $parsedRule['parameters'])]);
+		$other = $this->getValidationAttribute(reset($parsedRule['parameters']));
+		$message = $this->getValidationMessage($attribute, $parsedRule['name'], compact('other'));
 		return ['data-msg-equalto' => $message];
 	}
 	
 	public function different($parsedRule, $attribute)
 	{
-		$message = $this->getValidationMessage($attribute, $parsedRule['name'], ['other' => vsprintf('%1s', $parsedRule['parameters'])]);
+		$other = $this->getValidationAttribute(reset($parsedRule['parameters']));
+		$message = $this->getValidationMessage($attribute, $parsedRule['name'], compact('other'));
 		return ['data-msg-notequalto' => $message];
 	}
 	
@@ -115,7 +117,8 @@ class Message extends \Bllim\Laravalid\Converter\Base\Message {
 
 	public function required_with($parsedRule, $attribute)
 	{
-		$message = $this->getValidationMessage($attribute, $parsedRule['name'], ['values' => implode(', ', $parsedRule['parameters'])]);
+		$values = implode(', ', array_map([$this, 'getValidationAttribute'], $parsedRule['parameters']));
+		$message = $this->getValidationMessage($attribute, $parsedRule['name'], compact('values'));
 		return ['data-msg-required' => $message];
 	}
 
