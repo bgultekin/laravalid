@@ -13,21 +13,21 @@ abstract class Container {
 
 	protected $customMethods = [];
 
-	public function convert($name, $parameters)
+	public function convert($name, $parameters = [])
 	{
 		$methodName = strtolower($name);
 
-		if(isset($this->customMethods[$methodName]))
+		if (isset($this->customMethods[$methodName]))
 		{
 			return call_user_func_array($this->customMethods[$methodName], $parameters);
 		}
 
-		if(method_exists($this, $methodName))
+		if (method_exists($this, $methodName))
 		{
 			return call_user_func_array([$this, $methodName], $parameters);
 		}
 
-		return [];
+		return null;
 	}
 
 	public function extend($name, $function)

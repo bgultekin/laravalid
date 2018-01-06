@@ -1,4 +1,7 @@
 <?php namespace Bllim\Laravalid\Converter\Base;
+
+use Illuminate\Support\Facades\Response;
+
 /**
  * Some description...
  * 
@@ -9,46 +12,64 @@
  * @version    0.9
  */
 
-use Bllim\Laravalid\Helper;
-
 abstract class Route extends Container {
 
-	public function convert($name, $parameters)
+	/**
+	 * @var \Illuminate\Validation\Factory
+	 */
+	protected $validatorFactory;
+
+	/**
+	 * @var \Illuminate\Encryption\Encrypter
+	 */
+	protected $encrypter;
+
+	public function __construct($validatorFactory, $encrypter)
 	{
-		$methodName = strtolower($name);
-
-		if(isset($this->customMethods[$methodName]))
-		{
-			return call_user_func_array($this->customMethods[$methodName], $parameters);
-		}
-
-		if(method_exists($this, $methodName))
-		{
-			return call_user_func_array([$this, $methodName], $parameters);
-		}
-
-		return $this->defaultRoute($name, $parameters);
+		$this->validatorFactory = $validatorFactory;
+		$this->encrypter = $encrypter;
 	}
 
-	public function defaultRoute($name, $parameters)
+	public function convert($name, $parameters = [])
 	{
-		$params = Helper::decrypt($parameters['params']);
-		unset($parameters['params']);
+		if (!is_null($result = parent::convert($name, $parameters)))
+			return $result;
+
+		return $this->defaultRoute($name, reset($parameters) ?: []);
+	}
+
+	protected function defaultRoute($name, $parameters = [])
+	{
+		$params = $this->decryptParameters($parameters);
 
 		$rules = array();
-		foreach ($parameters as $k => $v)
+		// allow multiple `remote` rules
+		foreach (explode('-', $name) as $i => $rule)
 		{
-			$rules[$k] = $name . ':' . $params;
+			foreach ($parameters as $k => $v)
+				$rules[$k][] = empty($params[$i]) ? $rule : $rule . ':' . $params[$i];
 		}
 
-		$validator = \Validator::make(
-		    $parameters,
-		    $rules
-		);
+		$validator = $this->validatorFactory->make($parameters, $rules);
 
 		if (!$validator->fails())
-			return \Response::json(true);
+			return Response::json(true);
 
-		return \Response::json($validator->messages()->first());
+		return Response::json($validator->messages()->first());
 	}
+
+	protected function decryptParameters(array &$parameters)
+	{
+		$params = empty($parameters['params']) ? []
+			: (is_array($parameters['params']) ? $parameters['params'] : array($parameters['params']));
+		unset($parameters['params'], $parameters['_']);
+
+		foreach ($params as &$param) {
+			if (!empty($param))
+				$param = $this->encrypter->decrypt($param);
+		}
+
+		return $params;
+	}
+
 }

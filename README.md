@@ -30,7 +30,7 @@ This package makes validation rules defined in laravel work client-side by conve
 ### Installation
 
 Require `bllim/laravel-validation-for-client-side` in composer.json and run `composer update`.
-
+```json
     {
         "require": {
             "laravel/framework": "5.0.*",
@@ -39,6 +39,7 @@ Require `bllim/laravel-validation-for-client-side` in composer.json and run `com
         }
         ...
     }
+```
 
 Composer will download the package. After the package is downloaded, open `config/app.php` and add the service provider and alias as below:
 ```php
@@ -56,12 +57,13 @@ Composer will download the package. After the package is downloaded, open `confi
 ```
 
 Also you need to publish configuration file and assets by running the following Artisan commands.
-```php
-$ php artisan vendor:publish
+```bash
+$ php artisan config:publish bllim/laravalid
+$ php artisan asset:publish bllim/laravalid
 ```
 
 ### Configuration
-After publishing configuration file, you can find it in config/laravalid folder. Configuration parameters are as below:
+After publishing configuration file, you can find it in `config/packages/bllim/laravalid` folder. Configuration parameters are as below:
 
 | Parameter | Description | Values |
 |-----------|-------------|--------|
@@ -81,7 +83,7 @@ The package uses laravel Form Builder to make validation rules work for both sid
     Form::close(); // don't forget to close form, it reset validation rules
 ```
 Also if you don't want to struggle with $rules at view files, you can set it in Controller or route by using Form::setValidation . This sets rules for first Form::open
-```php    
+```php
     // in controller or route
     $rules = ['name' => 'required|max:100', 'email' => 'required|email', 'birthdate' => 'date'];
     Form::setValidation($rules);
@@ -116,23 +118,20 @@ Controller/Route side
 ```php
 class UserController extends Controller {
     
-    public $createValidation = ['name' => 'required|max:255', 'username' => 'required|regex:/^[a-z\-]*$/|max:20', 'email' => 'required|email', 'age' => 'numeric'];
-    public $createColumns = ['name', 'username', 'email', 'age'];
+    static $createValidations = ['name' => 'required|max:255', 'username' => 'required|regex:/^[a-z\-]*$/|max:20', 'email' => 'required|email', 'age' => 'numeric'];
 
     public function getCreate()
     {
-        Form::setValidation($this->createValidation);
+        Form::setValidation(static::$createValidations);
         return View::make('user.create');
     }
 
     public function postCreate()
     {
-        $inputs = Input::only($this->createColumns);
-        $rules = $this->createValidation;
+        $inputs = Input::only(array_keys(static::$createValidations));
+        $validator = Validator::make($inputs, static::$createValidations);
 
-        $validator = Validator::make($inputs, $rules);
-
-        if($validator->fails())
+        if ($validator->fails())
         {
             // actually withErrors is not really neccessary because we already show errors at client side for normal users
             return Redirect::back()->withErrors($validator);
@@ -161,9 +160,9 @@ View side
         {{ Form::number('age') }}
         {{ Form::close() }}
 
-        <script src="{{ asset('js/jquery-1.10.2.min.js') }}"></script>
-        <script src="{{ asset('js/jquery.validate.min.js') }}"></script>
-        <script src="{{ asset('js/jquery.validate.laravalid.js') }}"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.17.0/jquery.validate.min.js"></script>
+        <script src="{{ asset('packages/bllim/laravalid/jquery.validate.laravalid.js') }}"></script>
         <script type="text/javascript">
         $('form').validate({onkeyup: false});
         </script>
@@ -186,8 +185,8 @@ Form::converter()->route()->extend('someotherrule', function($name, $parameters)
     // some code
     return ['valid' => false, 'messages' => 'Seriously dude, what kind of input is this?'];
 });
-
 ```
+
 Second, you can create your own converter (which extends baseconverter or any current plugin converter) in `Bllim\Laravalid\Converter\` namespace and change plugin configuration in config file with your own plugin name.
 
 > **Note:** If you are creating a converter for some existed html/js plugin please create it in `converters` folder and send a pull-request.
@@ -200,38 +199,38 @@ To use Jquery Validation, change plugin to `JqueryValidation` in config file and
 | Rules          | Jquery Validation |
 | ---------------|:----------------:|
 | Accepted  | - |
-| Active URL  | - |
-| After (Date)  | - |
+| Active URL  | `+` |
+| After (Date)  | `+` |
 | Alpha  | `+` |
 | Alpha Dash  | - |
-| Alpha Numeric  | - |
+| Alpha Numeric  | `+` |
 | Array  | - |
-| Before (Date)  | - |
+| Before (Date)  | `+` |
 | Between  | `+` |
 | Boolean  | - |
 | Confirmed  | - |
 | Date  | `+` |
 | Date Format  | - |
-| Different  | - |
+| Different  | `+` |
 | Digits  | - |
 | Digits Between  | - |
 | E-Mail  | `+` |
 | Exists (Database)  | `+` |
-| Image (File)  | - |
+| Image (File)  | `+` |
 | In  | - |
-| Integer  | - |
+| Integer  | `+` |
 | IP Address  | `+` |
 | Max  | `+` |
-| MIME Types  | - |
+| MIME Types  | `+` |
 | Min  | `+` |
 | Not In  | - |
 | Numeric  | `+` |
 | Regular Expression  | `+` |
 | Required  | `+` |
 | Required If  | - |
-| Required With  | - |
+| Required With  | `+` |
 | Required With All  | - |
-| Required Without  | - |
+| Required Without  | `+` |
 | Required Without All  | - |
 | Same  | `+` |
 | Size  | - |

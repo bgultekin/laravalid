@@ -1,7 +1,4 @@
 <?php namespace Bllim\Laravalid\Converter\Base;
-
-use Bllim\Laravalid\Helper;
-
 /**
  * Base converter class for converter plugins
  * 
@@ -17,44 +14,73 @@ abstract class Converter {
 	/**
 	 * Rule converter class instance
 	 *
-	 * @var array
+	 * @var Rule
 	 */
 	protected static $rule;
 
 	/**
 	 * Message converter class instance
 	 *
-	 * @var array
+	 * @var Message
 	 */
 	protected static $message;
 
 	/**
-	 * Route redirecter class instance
+	 * Route redirector class instance
 	 *
-	 * @var array
+	 * @var Route
 	 */	
 	protected static $route;
 
 	/**
-	 * Rules which specify input type is numeric
+	 * Laravel validation rules.
 	 *
 	 * @var array
 	 */
 	protected $validationRules = [];
 
+	protected static $multiParamRules = [
+		'between', 'digits_between',
+		'in', 'not_in',
+		'mimes',
+		'required_if', 'required_with', 'required_with_all', 'required_without', 'required_without_all',
+		'exists', 'unique',
+	];
+
+	/**
+	 * Rules which specify input type is file
+	 *
+	 * @var array
+	 */
+	protected static $fileRules = ['image', 'mimes'];
 
 	/**
 	 * Rules which specify input type is numeric
 	 *
 	 * @var array
 	 */
-	protected $numericRules = ['integer', 'numeric'];
+	protected static $numericRules = ['integer', 'numeric', 'digits', 'digits_between'];
 
-	public function __construct()
+	/**
+	 * @var bool
+	 */
+	protected $useLaravelMessages;
+
+	/**
+	 * @param \Illuminate\Container\Container $app
+	 */
+	public function __construct($app)
 	{
-		self::$rule = new Rule();
-		self::$message = new Message();
-		self::$route = new Route();
+		/* @var $config \Illuminate\Config\Repository */
+		$config = $app['config'];
+		$routeUrl = $app['url']->to($config->get('laravalid::route', 'laravalid'));
+
+		$ns = substr(static::class, 0, -9) ?: '\\';
+		($class = $ns . 'Rule') and static::$rule = new $class($routeUrl, $app['encrypter']);
+		($class = $ns . 'Message') and static::$message = new $class($app['translator']);
+		($class = $ns . 'Route') and static::$route = new $class($app['validator'], $app['encrypter']);
+
+		$this->useLaravelMessages = $config->get('laravalid::useLaravelMessages', true);
 	}
 
 	public function rule()
@@ -76,29 +102,25 @@ abstract class Converter {
 	 * Set rules for validation
 	 *
 	 * @param array $rules 		Laravel validation rules
-	 *
 	 */
 	public function set($rules)
 	{
-		if($rules === null) return;
-		$this->validationRules = $rules;
+		if (isset($rules))
+			$this->validationRules = (array)$rules;
 	}
 
 	/**
 	 * Reset validation rules
-	 *
 	 */
 	public function reset()
 	{
 		$this->validationRules = [];
 	}
 
-
 	/**
 	 * Get all given validation rules
 	 *
-	 * @param array $rules 		Laravel validation rules
-	 *
+	 * @return array 		Laravel validation rules
 	 */
 	public function getValidationRules()
 	{
@@ -108,71 +130,78 @@ abstract class Converter {
 	/**
 	 * Returns validation rules for given input name
 	 *
-	 * @return string
+	 * @param string
+	 * @return array
 	 */
 	protected function getValidationRule($inputName)
 	{
 		return is_array($this->validationRules[$inputName])
-		 ? $this->validationRules[$inputName]
-		 : explode('|', $this->validationRules[$inputName]);
+			? $this->validationRules[$inputName]
+			: explode('|', $this->validationRules[$inputName]);
 	}
 
 	/**
 	 * Checks if there is a rules for given input name
 	 *
-	 * @return string
+	 * @param string
+	 * @return bool
 	 */
 	protected function checkValidationRule($inputName)
 	{
 		return isset($this->validationRules[$inputName]);
 	}
 
-
-	public function convert($inputName)
-	{		
-		$outputAttributes = [];
-
-		if($this->checkValidationRule($inputName) === false)
-		{
+	public function convert($inputName, $inputType = null)
+	{
+		if (!$this->checkValidationRule($inputName)) {
 			return [];
 		}
 
 		$rules = $this->getValidationRule($inputName);
 		$type = $this->getTypeOfInput($rules);
 
-		foreach ($rules as $rule) 
+		$outputAttributes = [];
+		foreach ($rules as $rule)
 		{
 			$parsedRule = $this->parseValidationRule($rule);
-			$outputAttributes = $outputAttributes + $this->rule()->convert($parsedRule['name'], [$parsedRule, $inputName, $type]);
 
-			if(\Config::get('laravalid.useLaravelMessages', true))
+			$ruleAttributes = $this->rule()->convert($parsedRule['name'], [$parsedRule, $inputName, $type]);
+			if (!empty($ruleAttributes)) {
+				$outputAttributes = $this->rule()->mergeOutputAttributes($outputAttributes, $ruleAttributes, $inputType);
+
+				if (empty($ruleAttributes)) continue;
+			}
+
+			if ($this->useLaravelMessages)
 			{
 				$messageAttributes = $this->message()->convert($parsedRule['name'], [$parsedRule, $inputName, $type]);
-				
+
 				// if empty message attributes
-				if(empty($messageAttributes))
+				if (empty($messageAttributes) && !empty($ruleAttributes))
 				{
 					$messageAttributes = $this->getDefaultErrorMessage($parsedRule['name'], $inputName);
 				}
-			}
 
-			$outputAttributes = $outputAttributes + $messageAttributes;
+				if (!empty($messageAttributes))
+					$outputAttributes += $messageAttributes;
+			}
 		}
-		
+
 		return $outputAttributes;
 	}
 
 	/**
 	 * Get all rules and return type of input if rule specifies type
-	 * Now, just for numeric
 	 *
+	 * @param array
 	 * @return string
 	 */
 	protected function getTypeOfInput($rulesOfInput)
 	{
 		foreach ($rulesOfInput as $key => $rule) {
 			$parsedRule = $this->parseValidationRule($rule);
-			if(in_array($parsedRule['name'], $this->numericRules))
+
+			if (in_array($parsedRule['name'], static::$numericRules))
 			{
 				return 'numeric';
 			}
@@ -180,23 +209,33 @@ abstract class Converter {
 			{
 				return 'array';
 			}
+			elseif (in_array($parsedRule['name'], static::$fileRules))
+			{
+				return 'file';
+			}
 		}
 
 		return 'string';
 	}
 
 	/**
-	 * Parses validition rule of laravel
+	 * Parses validation rule of laravel
 	 *
+	 * @param string
 	 * @return array
 	 */
 	protected function parseValidationRule($rule)
 	{
-		$ruleArray = ['name' => '', 'parameters' => []];
+		$ruleArray = array();
 
-		$explodedRule = explode(':', $rule);
-		$ruleArray['name'] = array_shift($explodedRule);
-		$ruleArray['parameters'] = explode(',', array_shift($explodedRule));
+		$parameters = explode(':', $rule, 2);
+		$ruleArray['name'] = array_shift($parameters);
+
+		if (empty($parameters) || !in_array(strtolower($ruleArray['name']), static::$multiParamRules)) {
+			$ruleArray['parameters'] = $parameters;
+		} else {
+			$ruleArray['parameters'] = str_getcsv($parameters[0]);
+		}
 
 		return $ruleArray;
 	}
@@ -204,14 +243,15 @@ abstract class Converter {
 	/**
 	 * Gets default error message
 	 *
+	 * @param string $laravelRule
+	 * @param string $attribute
 	 * @return string
 	 */
 	protected function getDefaultErrorMessage($laravelRule, $attribute)
 	{
 		// getting user friendly validation message
-		$message = Helper::getValidationMessage($attribute, $laravelRule);
-
-		return ['data-msg-'.$laravelRule => $message];
+		$message = $this->message()->getValidationMessage($attribute, $laravelRule);
+		return ['data-msg-' . $laravelRule => $message];
 	}
 
 }
