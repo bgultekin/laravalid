@@ -51,7 +51,7 @@ class MessageTest extends \PHPUnit_Framework_TestCase
 		$this->translator->shouldReceive('get')
 			->with('validation.active_url', ['other' => 'old_name', 'attribute' => 'first name'])->once()
 			->andReturnUsing(function ($key, $data) {
-				return $data['attribute'] . ' === ' . $data['other'];
+				return ($key == 'validation.active_url') ? $data['attribute'] . ' === ' . $data['other'] : $key;
 			});
 
 		$value = $this->message->getValidationMessage('first_name', 'activeUrl', ['other' => 'old_name']);
@@ -63,7 +63,7 @@ class MessageTest extends \PHPUnit_Framework_TestCase
 		$this->translator->shouldReceive('get')
 			->with('validation.custom.lastName.email', ['max' => '100', 'attribute' => 'Last name'])->once()
 			->andReturnUsing(function ($key, $data) {
-				return $data['attribute'] . ' <= ' . $data['max'];
+				return ($key == 'validation.custom.lastName.email') ? $data['attribute'] . ' <= ' . $data['max'] : $key;
 			});
 
 		$value = $this->message->getValidationMessage('lastName', 'email', ['max' => '100']);

@@ -253,15 +253,14 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 		$this->assertContains(' data-msg-required="The last name field is required when first name is not present."', $html);
 		$this->assertContains(' maxlength="100" data-msg-maxlength="The last name may not be greater than {0} characters."', $html);
 
-		$html = $this->form->url('photo');
-		$this->assertStringEndsWith(' name="photo" type="url">', $html);
+		$html = $this->form->text('photo');
+		$this->assertStringEndsWith(' name="photo" type="text">', $html);
 		$this->assertStringStartsWith('<input ', $html);
 		$this->assertContains(' maxlength="1000" data-msg-maxlength="The photo may not be greater than {0} characters."', $html);
-		$this->assertNotContains(' data-rule-url=', $html);
-		$this->assertContains(' data-msg-url="The photo format is invalid."', $html);
+		$this->assertContains(' data-rule-url="true" data-msg-url="The photo format is invalid."', $html);
 		$this->assertContains(' data-rule-remote="/laravalid/active_url?params=YW5vbg" data-msg-remote="The photo is not a valid URL."', $html);
 
-		$html = $this->form->select('gender', ['Female', 'Male']);// unsupport: boolean
+		$html = $this->form->select('gender', ['Female', 'Male']);// unsupported: boolean
 		$this->assertEquals('<select name="gender"><option value="0">Female</option><option value="1">Male</option></select>', $html);
 
 		$html = $this->form->input('date', 'birthdate');
@@ -277,7 +276,7 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 		$this->assertStringStartsWith('<input ', $html);
 		$this->assertContains(' data-rule-rangelength="20,30" maxlength="30" data-msg-rangelength="The phone must be between {0} and {1} characters."', $html);
 
-		$html = $this->form->select('country', ['US' => 'US', 'VN' => 'VN']);// unsupport: in
+		$html = $this->form->select('country', ['US' => 'US', 'VN' => 'VN']);// unsupported: in
 		$this->assertEquals('<select name="country"><option value="US">US</option><option value="VN">VN</option></select>', $html);
 
 		$html = $this->form->number('rating');

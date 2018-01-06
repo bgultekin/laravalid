@@ -1,5 +1,6 @@
 <?php namespace Bllim\Laravalid\Converter;
 
+use Bllim\Laravalid\FormBuilderTest;
 use Illuminate\Config\Repository;
 use Illuminate\Container\Container;
 use Illuminate\Encryption\Encrypter;
@@ -24,7 +25,7 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 	{
 		$config = \Mockery::mock(Repository::class);
 		$config->shouldReceive('get')->zeroOrMoreTimes()->andReturnUsing(function ($key, $default = null) {
-			return isset($default) ? $default : 'JqueryValidation';
+			return isset($default) ? $default : ($key == 'laravalid::plugin' ? 'JqueryValidation' : null);
 		});
 
 		$url = \Mockery::mock(UrlGenerator::class);
@@ -38,7 +39,7 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 			return str_replace(['/', '+', '='], ['_', '-', ''], base64_encode($data));
 		});
 
-		// validation messages
+		/* @var $loader \Mockery\MockInterface|LoaderInterface */
 		$loader = \Mockery::mock(LoaderInterface::class);
 		$loader->shouldReceive('load')->with('en', 'validation', '*')->andReturn(static::$messages);
 		//
@@ -202,7 +203,7 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testConvert($inputName = '', $inputType = null, $expected = [])
 	{
-		$this->converter->set(\Bllim\Laravalid\FormBuilderTest::$validationRules);
+		$this->converter->set(FormBuilderTest::$validationRules);
 
 		$value = $this->converter->convert($inputName, $inputType);
 		$this->assertEquals($expected, $value);
@@ -319,7 +320,7 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 				'data-msg-url' => 'The photo format is invalid.',
 				'data-rule-remote' => '/laravalid/active_url?params=YW5vbg', 'data-msg-remote' => 'The photo is not a valid URL.',
 			]],
-			['gender', null, []],// unsupport: boolean
+			['gender', null, []],// unsupported: boolean
 			['birthdate', 'date', [
 				'data-msg-date' => 'The birthdate is not a valid date.',
 				'min' => '1900-01-01', 'data-msg-min' => 'The birthdate must be a date after {0}.',
@@ -329,7 +330,7 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 				'data-rule-rangelength' => '20,30', 'data-msg-rangelength' => 'The phone must be between {0} and {1} characters.',
 				'maxlength' => '30',
 			]],
-			['country', null, []],// unsupport: in
+			['country', null, []],// unsupported: in
 			//
 			['rating', 'number', [
 				'data-msg-number' => 'The rating must be a number.',
