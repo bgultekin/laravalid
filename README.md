@@ -1,4 +1,4 @@
-#Laravalid 
+# Laravalid 
 #### Laravel Validation For Client Side
 
 This package makes validation rules defined in laravel work client-side by converting to html/js plugins such as jquery validation. It also allows to use laravel validation messages so you can show same messages for both sides.
@@ -29,13 +29,13 @@ This package makes validation rules defined in laravel work client-side by conve
 
 ### Installation
 
-Require `bllim/laravel-validation-for-client-side` in composer.json and run `composer update`.
+Require `bllim/laravalid` in composer.json and run `composer update`.
 ```json
     {
         "require": {
-            "laravel/framework": "5.0.*",
+            "laravel/framework": "4.2.*",
             ...
-            "bllim/laravalid": "*"
+            "bllim/laravalid": "dev-laravel4"
         }
         ...
     }
@@ -73,7 +73,7 @@ After publishing configuration file, you can find it in `config/packages/bllim/l
 
 ### Usage
 
-The package uses laravel Form Builder to make validation rules work for both sides. Therefore you should use Form Builder. While opening form by using Form::open you can give $rules as second parameter:
+The package uses laravel Form Builder to make validation rules work for both sides. Therefore you should use Form Builder. While opening form by using `Form::open` you can give `$rules` as second parameter:
 ```php
     $rules = ['name' => 'required|max:100', 'email' => 'required|email', 'birthdate' => 'date'];
     Form::open(array('url' => 'foo/bar', 'method' => 'put'), $rules);
@@ -82,7 +82,7 @@ The package uses laravel Form Builder to make validation rules work for both sid
     Form::text('birthdate');
     Form::close(); // don't forget to close form, it reset validation rules
 ```
-Also if you don't want to struggle with $rules at view files, you can set it in Controller or route by using Form::setValidation . This sets rules for first Form::open
+Also if you don't want to struggle with `$rules` at view files, you can set it in `Controller` or route by using `Form::setValidation`. This sets rules for first `Form::open`
 ```php
     // in controller or route
     $rules = ['name' => 'required|max:100', 'email' => 'required|email', 'birthdate' => 'date'];
@@ -93,19 +93,19 @@ Also if you don't want to struggle with $rules at view files, you can set it in 
     // some form inputs
     Form::close();
 ```
-For rules which is related to input type in laravel (such as max, min), the package looks for other given rules to understand which type is input. If you give integer or numeric as rule with max, min rules, the package assume input is numeric and convert to data-rule-max instead of data-rule-maxlength.
+For rules which is related to input type in laravel (such as `max`, `min`), the package looks for other given rules to understand which type is input. If you give integer or numeric as rule with `max`, `min` rules, the package assume input is numeric and convert to `data-rule-max` instead of `data-rule-maxlength`.
 ```php
     $rules = ['age' => 'numeric|max'];
 ```
-The converter assume input is string by default. File type is not supported yet.
+The converter assume input is `string` by default. File type is also supported.
 
 **Validation Messages**
 
-Converter uses validation messages of laravel (app/lang/en/validation.php) by default for client-side too. If you want to use jquery validation messages, you can set useLaravelMessages, false in config file of package which you copied to your config dir. 
+Converter uses validation messages of laravel (`app/lang/en/validation.php`) by default for client-side too. If you want to use jquery validation messages, you can set `useLaravelMessages`, false in config file of package which you copied to your config dir. 
 
 #### Plugins
 **Jquery Validation**
-While using Jquery Validation as html/js validation plugin, you should include jquery.validate.laravalid.js in your views, too. After assets published, it will be copied to your public folder. The last thing you should do at client side is initializing jquery validation plugin as below:
+While using Jquery Validation as html/js validation plugin, you should include `jquery.validate.laravalid.js` in your views, too. After assets published, it will be copied to your public folder. The last thing you should do at client side is initializing jquery validation plugin as below:
 ```html
 <script type="text/javascript">
 $('form').validate({onkeyup: false}); //while using remote validation, remember to set onkeyup false
@@ -189,11 +189,11 @@ Form::converter()->route()->extend('someotherrule', function($name, $parameters)
 
 Second, you can create your own converter (which extends baseconverter or any current plugin converter) in `Bllim\Laravalid\Converter\` namespace and change plugin configuration in config file with your own plugin name.
 
-> **Note:** If you are creating a converter for some existed html/js plugin please create it in `converters` folder and send a pull-request.
+> **Note:** If you are creating a converter for some existed html/js plugin please create it in `converter` folder and send a pull-request.
 
 ### Plugins and Supported Rules
 **Jquery Validation**
-To use Jquery Validation, change plugin to `JqueryValidation` in config file and import jquery, jquery-validation and **jquery.validation.laravel.js** in views.
+To use Jquery Validation, change plugin to `JqueryValidation` in config file and import `jquery`, `jquery-validation` and **jquery.validate.laravalid.js** in views.
 
 
 | Rules          | Jquery Validation |
@@ -245,14 +245,13 @@ To use Jquery Validation, change plugin to `JqueryValidation` in config file and
 You can fork and contribute to development of the package. All pull requests is welcome.
 
 **Convertion Logic**
-Package converts rules by using converters (in src/converters). It uses Converter class of chosen plugin which extends BaseConverter/Converter class. 
+Package converts rules by using converters (in `src/Bllim/Laravalid/converter`). It uses `Converter` class of chosen plugin which extends `Converter/Base/Converter` class. 
 You can look at existed methods and plugins to understand how it works. Explanation will be ready, soon.
 
 ### Known issues
 - Some rules are not supported for now
 
 ### TODO
-- Test script
 - Support unsupported rules
 - Improve doc
 - Comment code
