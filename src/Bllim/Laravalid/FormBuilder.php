@@ -2,7 +2,12 @@
 
 namespace Bllim\Laravalid;
 
-/*
+use Collective\Html\HtmlBuilder;
+use Illuminate\Contracts\Routing\UrlGenerator;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\Request;
+
+/**
  * This class is extending \Collective\Html\FormBuilder to make 
  * validation easy for both client and server side. Package convert 
  * laravel validation rules to javascript validation plugins while 
@@ -10,7 +15,7 @@ namespace Bllim\Laravalid;
  *
  * USAGE: Just pass $rules to Form::open($options, $rules) and use.
  * You can also pass by using Form::setValidation from controller or router
- * for coming first form::open.
+ * for coming first Form::open.
  * When Form::close() is used, $rules are reset.
  *
  * NOTE: If you use min, max, size, between and type of input is different from string
@@ -27,10 +32,10 @@ class FormBuilder extends \Collective\Html\FormBuilder
 {
     protected $converter;
 
-    public function __construct(\Collective\Html\HtmlBuilder $html, \Illuminate\Routing\UrlGenerator $url, \Illuminate\View\Factory $view, $csrfToken, Converter\Base\Converter $converter)
+    public function __construct(HtmlBuilder $html, UrlGenerator $url, Factory $view, $csrfToken, Converter\Base\Converter $converter, Request $request = null)
     {
-        parent::__construct($html, $url, $view, $csrfToken);
-        $plugin = \Config::get('laravalid.plugin');
+        parent::__construct($html, $url, $view, $csrfToken, $request);
+
         $this->converter = $converter;
     }
 
@@ -38,6 +43,7 @@ class FormBuilder extends \Collective\Html\FormBuilder
      * Set rules for validation.
      *
      * @param array $rules Laravel validation rules
+     * @param string $formName
      */
     public function setValidation($rules, $formName = null)
     {
@@ -45,9 +51,9 @@ class FormBuilder extends \Collective\Html\FormBuilder
     }
 
     /**
-     * Get binded converter class.
+     * Get bound converter class.
      *
-     * @param array $rules Laravel validation rules
+     * @return Converter\Base\Converter
      */
     public function converter()
     {
@@ -56,93 +62,89 @@ class FormBuilder extends \Collective\Html\FormBuilder
 
     /**
      * Reset validation rules.
+     *
+     * @param string|bool $formName
      */
-    public function resetValidation()
+    public function resetValidation($formName = false)
     {
-        $this->converter()->reset();
+        $this->converter()->reset($formName);
     }
 
     /**
      * Opens form, set rules.
      *
+     * @param array $options
      * @param array $rules Laravel validation rules
-     *
-     * @see Illuminate\Html\FormBuilder
+     * @return \Illuminate\Support\HtmlString
      */
     public function open(array $options = [], $rules = null)
     {
-        $this->setValidation($rules);
-
-        if (isset($options['name'])) {
-            $this->converter->setFormName($options['name']);
-        } else {
-            $this->converter->setFormName(null);
-        }
+        $this->setValidation($rules, isset($options['name']) ? $options['name'] : null);
 
         return parent::open($options);
     }
 
     /**
-     * Create a new model based form builder.
+     * {@inheritdoc}
      *
      * @param array $rules Laravel validation rules
-     *
-     * @see Illuminate\Html\FormBuilder
      */
     public function model($model, array $options = [], $rules = null)
     {
-        $this->setValidation($rules);
+        $this->setValidation($rules, isset($options['name']) ? $options['name'] : null);
 
         return parent::model($model, $options);
     }
 
     /**
-     * @see Illuminate\Html\FormBuilder
+     * {@inheritdoc}
      */
     public function input($type, $name, $value = null, $options = [])
     {
-        $options = $this->converter->convert(Helper::getFormAttribute($name)) + $options;
+        $options += $this->getValidationAttributes($name, $type);
 
         return parent::input($type, $name, $value, $options);
     }
 
     /**
-     * @see Illuminate\Html\FormBuilder
+     * {@inheritdoc}
      */
     public function textarea($name, $value = null, $options = [])
     {
-        $options = $this->converter->convert(Helper::getFormAttribute($name)) + $options;
+        $options += $this->getValidationAttributes($name);
 
         return parent::textarea($name, $value, $options);
     }
 
     /**
-     * @see Illuminate\Html\FormBuilder
+     * {@inheritdoc}
      */
     public function select($name, $list = [], $selected = null, array $selectAttributes = [], array $optionsAttributes = [])
     {
-        $optionsAttributes = $this->converter->convert(Helper::getFormAttribute($name)) + $optionsAttributes;
-        $selectAttributes = $this->converter->convert(Helper::getFormAttribute($name)) + $selectAttributes;
+        $selectAttributes += $this->getValidationAttributes($name);
 
         return parent::select($name, $list, $selected, $selectAttributes, $optionsAttributes);
-    }
-
-    protected function checkable($type, $name, $value, $checked, $options)
-    {
-        $options = $this->converter->convert(Helper::getFormAttribute($name)) + $options;
-
-        return parent::checkable($type, $name, $value, $checked, $options);
     }
 
     /**
      * Closes form and reset $this->rules.
      * 
-     * @see Illuminate\Html\FormBuilder
+     * @return string
      */
     public function close()
     {
         $this->resetValidation();
 
         return parent::close();
+    }
+
+    protected function getValidationAttributes($name, $type = null)
+    {
+        // raw attribute name without array braces
+        if (($i = strpos($name, '[')) !== false) {
+            $name = substr($name, 0, $i) . preg_replace(['/(?:^|\G)\[\s*([A-Za-z_]\w*)\s*\]\s*/', '/\[.*$/'], ['.$1', ''], substr($name, $i));
+        }
+
+        return $this->converter->convert($name, $type);
     }
 }

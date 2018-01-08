@@ -19,6 +19,7 @@ class LaravalidServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+        /* @var $app \Illuminate\Contracts\Foundation\Application|\ArrayAccess */
         $app = $this->app;
 
         $this->publishes([
