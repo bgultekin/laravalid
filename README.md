@@ -30,40 +30,40 @@ This package makes validation rules defined in laravel work client-side by conve
 ### Installation
 
 Require `bllim/laravalid` in composer.json and run `composer update`.
-
+```json
     {
         "require": {
-            "laravel/framework": "5.1.*", //or "5.0.*"
+            "laravel/framework": "5.2.*", //or "5.0.*"
             ...
             "bllim/laravalid": "*"
         }
         ...
     }
-
+```
 > **Note:** For **Laravel 4** use `laravel4` branch like as `"bllim/laravalid": "dev-laravel4"`
 
 Composer will download the package. After the package is downloaded, open `config/app.php` and add the service provider and alias as below:
 ```php
     'providers' => array(
         ...
-            'Bllim\Laravalid\LaravalidServiceProvider',
+            Bllim\Laravalid\LaravalidServiceProvider::class,
     ),
 ```
 ```php
     'aliases' => array(
         ...
-            'HTML'      => 'Collective\Html\HtmlFacade::class', // if not exists add for html too
-            'Form'      => 'Bllim\Laravalid\Facade',
+            'HTML'      => Collective\Html\HtmlFacade::class, // if not exists add for html too
+            'Form'      => Bllim\Laravalid\Facade::class,
     ),
 ```
 
 Also you need to publish configuration file and assets by running the following Artisan commands.
-```php
+```bash
 $ php artisan vendor:publish
 ```
 
 ### Configuration
-After publishing configuration file, you can find it in config/laravalid folder. Configuration parameters are as below:
+After publishing configuration file, you can find it in `config` folder as `laravalid.php` file. Configuration parameters are as below:
 
 | Parameter | Description | Values |
 |-----------|-------------|--------|
@@ -73,7 +73,7 @@ After publishing configuration file, you can find it in config/laravalid folder.
 
 ### Usage
 
-The package uses laravel Form Builder to make validation rules work for both sides. Therefore you should use Form Builder. While opening form by using Form::open you can give $rules as second parameter:
+The package uses laravel Form Builder to make validation rules work for both sides. Therefore you should use Form Builder. While opening form by using `Form::open` you can give `$rules` as second parameter:
 ```php
     $rules = ['name' => 'required|max:100', 'email' => 'required|email', 'birthdate' => 'date'];
     Form::open(array('url' => 'foo/bar', 'method' => 'put'), $rules);
@@ -82,7 +82,7 @@ The package uses laravel Form Builder to make validation rules work for both sid
     Form::text('birthdate');
     Form::close(); // don't forget to close form, it reset validation rules
 ```
-Also if you don't want to struggle with $rules at view files, you can set it in Controller or route with or without form name by using Form::setValidation($rules, $formName). If you don't give form name, this sets rules for first Form::open
+Also if you don't want to struggle with `$rules` at view files, you can set it in `Controller` or route with or without form name by using `Form::setValidation($rules, $formName)`. If you don't give form name, this sets rules for first `Form::open`
 ```php    
     // in controller or route
     $rules = ['name' => 'required|max:100', 'email' => 'required|email', 'birthdate' => 'date'];
@@ -93,19 +93,19 @@ Also if you don't want to struggle with $rules at view files, you can set it in 
     // some form inputs
     Form::close();
 ```
-For rules which is related to input type in laravel (such as max, min), the package looks for other given rules to understand which type is input. If you give integer or numeric as rule with max, min rules, the package assume input is numeric and convert to data-rule-max instead of data-rule-maxlength.
+For rules which is related to input type in laravel (such as `max`, `min`), the package looks for other given rules to understand which type is input. If you give integer or numeric as rule with `max`, `min` rules, the package assume input is numeric and convert to `data-rule-max` instead of `data-rule-maxlength`.
 ```php
     $rules = ['age' => 'numeric|max'];
 ```
-The converter assume input is string by default. File type is not supported yet.
+The converter assume input is `string` by default. File type is also supported.
 
 **Validation Messages**
 
-Converter uses validation messages of laravel (app/lang/en/validation.php) by default for client-side too. If you want to use jquery validation messages, you can set useLaravelMessages, false in config file of package which you copied to your config dir. 
+Converter uses validation messages of laravel (`resources/lang/en/validation.php`) by default for client-side too. If you want to use jquery validation messages, you can set `useLaravelMessages`, false in config file of package which you copied to your config dir. 
 
 #### Plugins
 **Jquery Validation**
-While using Jquery Validation as html/js validation plugin, you should include jquery.validate.laravalid.js in your views, too. After assets published, it will be copied to your public folder. The last thing you should do at client side is initializing jquery validation plugin as below:
+While using Jquery Validation as html/js validation plugin, you should include `jquery.validate.laravalid.js` in your views, too. After assets published, it will be copied to your public folder. The last thing you should do at client side is initializing jquery validation plugin as below:
 ```html
 <script type="text/javascript">
 $('form').validate({onkeyup: false}); //while using remote validation, remember to set onkeyup false
@@ -118,23 +118,20 @@ Controller/Route side
 ```php
 class UserController extends Controller {
     
-    public $createValidation = ['name' => 'required|max:255', 'username' => 'required|regex:/^[a-z\-]*$/|max:20', 'email' => 'required|email', 'age' => 'numeric'];
-    public $createColumns = ['name', 'username', 'email', 'age'];
+    static $createValidations = ['name' => 'required|max:255', 'username' => 'required|regex:/^[a-z\-]*$/|max:20', 'email' => 'required|email', 'age' => 'numeric'];
 
     public function getCreate()
     {
-        Form::setValidation($this->createValidation);
+        Form::setValidation(static::$createValidations);
         return View::make('user.create');
     }
 
     public function postCreate()
     {
-        $inputs = Input::only($this->createColumns);
-        $rules = $this->createValidation;
+        $inputs = Input::only(array_keys(static::$createValidations));
+        $validator = Validator::make($inputs, static::$createValidations);
 
-        $validator = Validator::make($inputs, $rules);
-
-        if($validator->fails())
+        if ($validator->fails())
         {
             // actually withErrors is not really neccessary because we already show errors at client side for normal users
             return Redirect::back()->withErrors($validator);
@@ -163,9 +160,9 @@ View side
         {{ Form::number('age') }}
         {{ Form::close() }}
 
-        <script src="{{ asset('js/jquery-1.10.2.min.js') }}"></script>
-        <script src="{{ asset('js/jquery.validate.min.js') }}"></script>
-        <script src="{{ asset('js/jquery.validate.laravalid.js') }}"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.17.0/jquery.validate.min.js"></script>
+        <script src="{{ asset('vendor/laravalid/jquery.validate.laravalid.js') }}"></script>
         <script type="text/javascript">
         $('form').validate({onkeyup: false});
         </script>
@@ -188,52 +185,52 @@ Form::converter()->route()->extend('someotherrule', function($name, $parameters)
     // some code
     return ['valid' => false, 'messages' => 'Seriously dude, what kind of input is this?'];
 });
-
 ```
+
 Second, you can create your own converter (which extends baseconverter or any current plugin converter) in `Bllim\Laravalid\Converter\` namespace and change plugin configuration in config file with your own plugin name.
 
-> **Note:** If you are creating a converter for some existed html/js plugin please create it in `converters` folder and send a pull-request.
+> **Note:** If you are creating a converter for some existed html/js plugin please create it in `Converter` folder and send a pull-request.
 
 ### Plugins and Supported Rules
 **Jquery Validation**
-To use Jquery Validation, change plugin to `JqueryValidation` in config file and import jquery, jquery-validation and **jquery.validation.laravel.js** in views.
+To use Jquery Validation, change plugin to `JqueryValidation` in config file and import `jquery`, `jquery-validation` and **jquery.validate.laravalid.js** in views.
 
 
 | Rules          | Jquery Validation |
 | ---------------|:----------------:|
 | Accepted  | - |
-| Active URL  | - |
-| After (Date)  | - |
+| Active URL  | `+` |
+| After (Date)  | `+` |
 | Alpha  | `+` |
 | Alpha Dash  | - |
-| Alpha Numeric  | - |
+| Alpha Numeric  | `+` |
 | Array  | - |
-| Before (Date)  | - |
+| Before (Date)  | `+` |
 | Between  | `+` |
 | Boolean  | - |
 | Confirmed  | - |
 | Date  | `+` |
 | Date Format  | - |
-| Different  | - |
+| Different  | `+` |
 | Digits  | - |
 | Digits Between  | - |
 | E-Mail  | `+` |
 | Exists (Database)  | `+` |
-| Image (File)  | - |
+| Image (File)  | `+` |
 | In  | - |
-| Integer  | - |
+| Integer  | `+` |
 | IP Address  | `+` |
 | Max  | `+` |
-| MIME Types  | - |
+| MIME Types  | `+` |
 | Min  | `+` |
 | Not In  | - |
 | Numeric  | `+` |
 | Regular Expression  | `+` |
 | Required  | `+` |
 | Required If  | - |
-| Required With  | - |
+| Required With  | `+` |
 | Required With All  | - |
-| Required Without  | - |
+| Required Without  | `+` |
 | Required Without All  | - |
 | Same  | `+` |
 | Size  | - |
@@ -248,14 +245,13 @@ To use Jquery Validation, change plugin to `JqueryValidation` in config file and
 You can fork and contribute to development of the package. All pull requests is welcome.
 
 **Convertion Logic**
-Package converts rules by using converters (in src/converters). It uses Converter class of chosen plugin which extends BaseConverter/Converter class. 
+Package converts rules by using converters (in `src/Bllim/Laravalid/Converter`). It uses `Converter` class of chosen plugin which extends `Converter/Base/Converter` class. 
 You can look at existed methods and plugins to understand how it works. Explanation will be ready, soon.
 
 ### Known issues
 - Some rules are not supported for now
 
 ### TODO
-- Test script
 - Support unsupported rules
 - Improve doc
 - Comment code
@@ -265,6 +261,7 @@ You can look at existed methods and plugins to understand how it works. Explanat
 - @phpspider
 - @jannispl
 - @rene-springmann
+- @nthachus
 
 and [more](https://github.com/bllim/laravalid/graphs/contributors)
 

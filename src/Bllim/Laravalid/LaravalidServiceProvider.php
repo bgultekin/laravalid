@@ -2,91 +2,76 @@
 
 namespace Bllim\Laravalid;
 
+use Collective\Html\HtmlBuilder;
 use Illuminate\Support\ServiceProvider;
 
 class LaravalidServiceProvider extends ServiceProvider
 {
     /**
-     * Indicates if loading of the provider is deferred.
-     *
-     * @var bool
+     * {@inheritdoc}
      */
     protected $defer = false;
 
     /**
-     * Bootstrap the application events.
+     * Perform post-registration booting of services.
      *
      * @return void
      */
     public function boot()
     {
+        /* @var $app \Illuminate\Contracts\Foundation\Application|\ArrayAccess */
+        $app = $this->app;
+
         $this->publishes([
-            __DIR__.'/../../../config' => config_path('laravalid'),
+            __DIR__ . '/../../../config/config.php' => $app['path.config'] . '/laravalid.php',
         ], 'config');
 
         $this->publishes([
-            __DIR__.'/../../../public' => public_path('laravalid'),
+            __DIR__ . '/../../../public' => $app['path.public'] . '/vendor/laravalid',
         ], 'public');
 
-        $routeName = \Config::get('laravalid.route');
+        // register routes for `remote` validations
+        $routeName = $app['config']['laravalid.route'];
 
-        // remote validations
-        \Route::any($routeName.'/{rule}', '\Bllim\Laravalid\RuleController@getIndex');
+        $app['router']->any($routeName . '/{rule}', function ($rule) use ($app) {
+            return $app['laravalid']->converter()->route()->convert($rule, [$app['request']->all()]);
+        })->where('rule', '[\w-]+');
     }
 
     /**
-     * Register the service provider.
+     * Register bindings in the container.
      *
      * @return void
      */
     public function register()
     {
-        $this->registerResources();
+        $this->mergeConfigFrom(
+            __DIR__ . '/../../../config/config.php', 'laravalid'
+        );
 
         if (!isset($this->app['html'])) {
             $this->app->singleton('html', function ($app) {
-                return new \Collective\Html\HtmlBuilder($app['url']);
+                return new HtmlBuilder($app['url'], $app['view']);
             });
         }
 
         $this->app->singleton('laravalid', function ($app) {
-                $plugin = \Config::get('laravalid.plugin');
-                $converterClassName = 'Bllim\Laravalid\Converter\\'.$plugin.'\Converter';
-                $converter = new $converterClassName();
+            $plugin = $app['config']['laravalid.plugin'];
+            $converterClass = (strpos($plugin, '\\') === false ? 'Bllim\Laravalid\Converter\\' : '') . $plugin . '\Converter';
 
-                $form = new FormBuilder($app->make('html'), $app->make('url'), $app->make('view'), $app->make('session.store')->token(), $converter);
+            /* @var $session \Illuminate\Session\Store */
+            $session = $app['session.store'];
+            $form = new FormBuilder($app['html'], $app['url'], $app['view'], $session->token(), new $converterClass($app), $app['request']);
 
-                return $form->setSessionStore($app->make('session.store'));
-            }
-        );
+            return $form->setSessionStore($session);
+        });
     }
 
     /**
-     * Register the package resources.
-     *
-     * @return void
-     */
-    protected function registerResources()
-    {
-        $userConfigFile = app()->configPath().'/laravalid/config.php';
-        $packageConfigFile = __DIR__.'/../../../config/config.php';
-        $config = $this->app['files']->getRequire($packageConfigFile);
-
-        if (file_exists($userConfigFile)) {
-            $userConfig = $this->app['files']->getRequire($userConfigFile);
-            $config = array_replace_recursive($config, $userConfig);
-        }
-
-        $this->app['config']->set('laravalid', $config);
-    }
-
-    /**
-     * Get the services provided by the provider.
-     *
-     * @return array
+     * {@inheritdoc}
      */
     public function provides()
     {
-        return [];
+        return ['laravalid'];
     }
 }

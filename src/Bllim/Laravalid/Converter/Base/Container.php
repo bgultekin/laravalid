@@ -16,7 +16,7 @@ abstract class Container
 {
     protected $customMethods = [];
 
-    public function convert($name, $parameters)
+    public function convert($name, $parameters = [])
     {
         $methodName = strtolower($name);
 
