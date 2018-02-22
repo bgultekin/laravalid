@@ -1,21 +1,16 @@
 <?php namespace Bllim\Laravalid\Converter;
 
-use Illuminate\Encryption\Encrypter;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\MessageBag;
-use Illuminate\Validation\Factory;
-use Illuminate\Validation\Validator;
 
 class RouteTest extends \PHPUnit_Framework_TestCase
 {
-
 	/**
-	 * @var \Mockery\MockInterface|Factory
+	 * @var \PHPUnit_Framework_MockObject_MockObject|\Illuminate\Validation\Factory
 	 */
 	protected $validator;
 
 	/**
-	 * @var \Mockery\MockInterface|Encrypter
+	 * @var \PHPUnit_Framework_MockObject_MockObject|\Illuminate\Encryption\Encrypter
 	 */
 	protected $encrypter;
 
@@ -28,56 +23,53 @@ class RouteTest extends \PHPUnit_Framework_TestCase
 	{
 		parent::setUp();
 
-		$this->validator = \Mockery::mock(Factory::class);
-		$this->encrypter = \Mockery::mock(Encrypter::class);
+		$this->validator = $this->getMock('Illuminate\Validation\Factory', ['make'], [], '', false);
+		$this->encrypter = $this->getMock('Illuminate\Encryption\Encrypter', ['decrypt'], [], '', false);
 		$this->route = new JqueryValidation\Route($this->validator, $this->encrypter);
-	}
-
-	protected function tearDown()
-	{
-		parent::tearDown();
-		\Mockery::close();
 	}
 
 	public function testActiveUrl()
 	{
-		$this->validator->shouldReceive('make')->with(['Bar' => 'foo'], ['Bar' => ['active_url']])->once()
-			->andReturn($validator = \Mockery::mock(Validator::class));
-		$validator->shouldReceive('fails')->once()->andReturn(true);
-		$validator->shouldReceive('messages')->once()->andReturn(new MessageBag(['Bar' => $msg = 'Inactive URL']));
+		$validator = $this->getMock('Illuminate\Validation\Validator', ['fails', 'messages'], [], '', false);
+		$this->validator->expects($this->once())->method('make')
+			->with(['Bar' => 'foo'], ['Bar' => ['active_url']])->willReturn($validator);
+		$validator->expects($this->once())->method('fails')->willReturn(true);
+		$validator->expects($this->once())->method('messages')->willReturn(new MessageBag(['Bar' => $msg = 'Inactive URL']));
 
 		$response = $this->route->convert('active_url', [['Bar' => 'foo', '_' => time()]]);
-		$this->assertEquals(JsonResponse::class, get_class($response));
+		$this->assertInstanceOf('Illuminate\Http\JsonResponse', $response);
 		$this->assertEquals($msg, $response->getData());
 	}
 
 	public function testExists()
 	{
-		$this->encrypter->shouldReceive('decrypt')->once()->andReturnUsing(function ($data) {
+		$this->encrypter->expects($this->once())->method('decrypt')->willReturnCallback(function ($data) {
 			return substr($data, 1);
 		});
 
-		$this->validator->shouldReceive('make')->with(['foo' => 'Bar'], ['foo' => ['exists:Tbl,field,ID']])->once()
-			->andReturn($validator = \Mockery::mock(Validator::class));
-		$validator->shouldReceive('fails')->once()->andReturn(false);
+		$validator = $this->getMock('Illuminate\Validation\Validator', ['fails'], [], '', false);
+		$this->validator->expects($this->once())->method('make')
+			->with(['foo' => 'Bar'], ['foo' => ['exists:Tbl,field,ID']])->willReturn($validator);
+		$validator->expects($this->once())->method('fails')->willReturn(false);
 
 		$response = $this->route->convert('exists', [['foo' => 'Bar', 'params' => '~Tbl,field,ID', '_' => time()]]);
-		$this->assertEquals(JsonResponse::class, get_class($response));
+		$this->assertInstanceOf('Illuminate\Http\JsonResponse', $response);
 		$this->assertTrue($response->getData());
 	}
 
 	public function testUnique()
 	{
-		$this->encrypter->shouldReceive('decrypt')->times(2)->andReturnUsing(function ($data) {
+		$this->encrypter->expects($this->exactly(2))->method('decrypt')->willReturnCallback(function ($data) {
 			return empty($data) ? $data : substr($data, 1);
 		});
 
-		$this->validator->shouldReceive('make')->with(['Foo' => 'Bar'], ['Foo' => ['unique:Tbl,field,Id,#Bar', 'active_url:anon']])->once()
-			->andReturn($validator = \Mockery::mock(Validator::class));
-		$validator->shouldReceive('fails')->once()->andReturn(false);
+		$validator = $this->getMock('Illuminate\Validation\Validator', ['fails'], [], '', false);
+		$this->validator->expects($this->once())->method('make')
+			->with(['Foo' => 'Bar'], ['Foo' => ['unique:Tbl,field,Id,#Bar', 'active_url:anon']])->willReturn($validator);
+		$validator->expects($this->once())->method('fails')->willReturn(false);
 
 		$response = $this->route->convert('unique-active_url', [['Foo' => 'Bar', 'params' => ['~Tbl,field,Id,#Bar', '+anon'], '_' => time()]]);
-		$this->assertEquals(JsonResponse::class, get_class($response));
+		$this->assertInstanceOf('Illuminate\Http\JsonResponse', $response);
 		$this->assertTrue($response->getData());
 	}
 
@@ -88,5 +80,4 @@ class RouteTest extends \PHPUnit_Framework_TestCase
 		});
 		$this->assertEquals($params = ['foo' => '?', 'params' => '~'], $this->route->convert('Unique', [$params]));
 	}
-
 }
