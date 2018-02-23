@@ -34,7 +34,7 @@ abstract class Message extends Container {
 	 * @return string
 	 * @see Illuminate\Validation\Validator::getMessage()
 	 */
-	public function getValidationMessage($attribute, $rule, $data = [], $type = null)
+	public function getValidationMessage($attribute, $rule, $data = array(), $type = null)
 	{
 		$path = Str::snake($rule);
 		if ($type !== null)
@@ -49,7 +49,7 @@ abstract class Message extends Container {
 
 		$niceName = $this->getValidationAttribute($attribute);
 
-		return $this->translator->get('validation.' . $path, $data + ['attribute' => $niceName]);
+		return $this->translator->get('validation.' . $path, $data + array('attribute' => $niceName));
 	}
 
 	protected function getValidationAttribute($attribute)

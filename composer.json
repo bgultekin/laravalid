@@ -10,10 +10,10 @@
         }
     ],
     "require": {
-        "php": ">=5.4.0",
-        "illuminate/config": "~4.2",
-        "illuminate/html": "~4.2",
-        "illuminate/support": "~4.2",
+        "php": ">=5.3.0",
+        "illuminate/config": "~4.0",
+        "illuminate/html": "~4.0",
+        "illuminate/support": "~4.0",
         "illuminate/validation": "~4.0",
         "illuminate/routing": "~4.0",
         "illuminate/translation": "~4.0"

@@ -37,29 +37,29 @@ abstract class Converter {
 	 *
 	 * @var array
 	 */
-	protected $validationRules = [];
+	protected $validationRules = array();
 
-	protected static $multiParamRules = [
+	protected static $multiParamRules = array(
 		'between', 'digits_between',
 		'in', 'not_in',
 		'mimes',
 		'required_if', 'required_with', 'required_with_all', 'required_without', 'required_without_all',
 		'exists', 'unique',
-	];
+	);
 
 	/**
 	 * Rules which specify input type is file
 	 *
 	 * @var array
 	 */
-	protected static $fileRules = ['image', 'mimes'];
+	protected static $fileRules = array('image', 'mimes');
 
 	/**
 	 * Rules which specify input type is numeric
 	 *
 	 * @var array
 	 */
-	protected static $numericRules = ['integer', 'numeric', 'digits', 'digits_between'];
+	protected static $numericRules = array('integer', 'numeric', 'digits', 'digits_between');
 
 	/**
 	 * @var bool
@@ -114,7 +114,7 @@ abstract class Converter {
 	 */
 	public function reset()
 	{
-		$this->validationRules = [];
+		$this->validationRules = array();
 	}
 
 	/**
@@ -154,18 +154,18 @@ abstract class Converter {
 	public function convert($inputName, $inputType = null)
 	{
 		if (!$this->checkValidationRule($inputName)) {
-			return [];
+			return array();
 		}
 
 		$rules = $this->getValidationRule($inputName);
 		$type = $this->getTypeOfInput($rules);
 
-		$outputAttributes = [];
+		$outputAttributes = array();
 		foreach ($rules as $rule)
 		{
 			$parsedRule = $this->parseValidationRule($rule);
 
-			$ruleAttributes = $this->rule()->convert($parsedRule['name'], [$parsedRule, $inputName, $type]);
+			$ruleAttributes = $this->rule()->convert($parsedRule['name'], array($parsedRule, $inputName, $type));
 			if (!empty($ruleAttributes)) {
 				$outputAttributes = $this->rule()->mergeOutputAttributes($outputAttributes, $ruleAttributes, $inputType);
 
@@ -174,7 +174,7 @@ abstract class Converter {
 
 			if ($this->useLaravelMessages)
 			{
-				$messageAttributes = $this->message()->convert($parsedRule['name'], [$parsedRule, $inputName, $type]);
+				$messageAttributes = $this->message()->convert($parsedRule['name'], array($parsedRule, $inputName, $type));
 
 				// if empty message attributes
 				if (empty($messageAttributes) && !empty($ruleAttributes))
@@ -251,7 +251,7 @@ abstract class Converter {
 	{
 		// getting user friendly validation message
 		$message = $this->message()->getValidationMessage($attribute, $laravelRule);
-		return ['data-msg-' . $laravelRule => $message];
+		return array('data-msg-' . $laravelRule => $message);
 	}
 
 }

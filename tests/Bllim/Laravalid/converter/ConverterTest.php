@@ -21,34 +21,34 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 	 */
 	static function initApplicationMock(\PHPUnit_Framework_TestCase $test, $trans = false)
 	{
-		$config = $test->getMock('Illuminate\Config\Repository', ['get'], [], '', false);
+		$config = $test->getMock('Illuminate\Config\Repository', array('get'), array(), '', false);
 		$config->expects($test->any())->method('get')->willReturnCallback(function ($key, $default = null) {
 			return isset($default) ? $default : ($key == 'laravalid::plugin' ? 'JqueryValidation' : null);
 		});
 
-		$url = $test->getMock('Illuminate\Routing\UrlGenerator', ['to'], [], '', false);
+		$url = $test->getMock('Illuminate\Routing\UrlGenerator', array('to'), array(), '', false);
 		$url->expects($test->any())->method('to')->willReturnCallback(function ($path) {
 			return '/' . ltrim($path, '/');
 		});
 
-		$encrypter = $test->getMock('Illuminate\Encryption\Encrypter', ['encrypt'], [], '', false);
+		$encrypter = $test->getMock('Illuminate\Encryption\Encrypter', array('encrypt'), array(), '', false);
 		$encrypter->expects($test->any())->method('encrypt')->willReturnCallback(function ($data) {
-			return str_replace(['/', '+', '='], ['_', '-', ''], base64_encode($data));
+			return str_replace(array('/', '+', '='), array('_', '-', ''), base64_encode($data));
 		});
 
 		$loader = $test->getMock('Illuminate\Translation\LoaderInterface');
 		$loader->expects($test->any())->method('load')->with('en', 'validation', '*')->willReturn(static::$messages);
 		//
-		$translator = $test->getMock('Illuminate\Translation\Translator', !$trans ? ['has'] : ['has', 'get'], [$loader, 'en']);
+		$translator = $test->getMock('Illuminate\Translation\Translator', !$trans ? array('has') : array('has', 'get'), array($loader, 'en'));
 		$translator->expects($test->any())->method('has')->willReturn(false);
 
-		$app = $test->getMock('Illuminate\Container\Container', ['make']);// Illuminate\Foundation\Application
-		$app->expects($test->any())->method('make')->willReturnMap([
-			['config', [], $config],
-			['url', [], $url],
-			['encrypter', [], $encrypter],
-			['translator', [], $translator],
-		]);
+		$app = $test->getMock('Illuminate\Container\Container', array('make'));// Illuminate\Foundation\Application
+		$app->expects($test->any())->method('make')->willReturnMap(array(
+			array('config', array(), $config),
+			array('url', array(), $url),
+			array('encrypter', array(), $encrypter),
+			array('translator', array(), $translator),
+		));
 
 		return $app;
 	}
@@ -83,19 +83,19 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 	public function testSetRules()
 	{
 		$this->converter->reset();
-		$this->assertEquals([], $this->converter->getValidationRules());
+		$this->assertEquals(array(), $this->converter->getValidationRules());
 
-		$this->converter->set($rules = ['foo_bar' => 'required|email']);
+		$this->converter->set($rules = array('foo_bar' => 'required|email'));
 		$this->assertEquals($rules, $this->converter->getValidationRules());
 
 		$this->converter->set(null);
 		$this->assertEquals($rules, $this->converter->getValidationRules());
 
 		$value = $this->invokeMethod($this->converter, 'getValidationRule', 'foo_bar');
-		$this->assertEquals(['required', 'email'], $value);
+		$this->assertEquals(array('required', 'email'), $value);
 
 		$this->converter->set('foo_bar');
-		$this->assertEquals(['foo_bar'], $this->converter->getValidationRules());
+		$this->assertEquals(array('foo_bar'), $this->converter->getValidationRules());
 
 		$this->assertTrue($this->invokeMethod($this->converter, 'checkValidationRule', 0));
 		$this->assertFalse($this->invokeMethod($this->converter, 'checkValidationRule', 'foo'));
@@ -106,7 +106,7 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 	 * @param array $expected
 	 * @dataProvider dataForParseValidationRule
 	 */
-	public function testParseValidationRule($rule = '', $expected = [])
+	public function testParseValidationRule($rule = '', $expected = array())
 	{
 		$value = $this->invokeMethod($this->converter, 'parseValidationRule', $rule);
 		$this->assertEquals($expected, $value);
@@ -115,24 +115,24 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 	public function dataForParseValidationRule()
 	{
 		return array(
-			['', ['name' => '', 'parameters' => []]],
-			['required', ['name' => 'required', 'parameters' => []]],
-			['min:3', ['name' => 'min', 'parameters' => ['3']]],
-			['exists:users,uid', ['name' => 'exists', 'parameters' => ['users', 'uid']]],
-			['max:255', ['name' => 'max', 'parameters' => ['255']]],
-			['unique:users,email', ['name' => 'unique', 'parameters' => ['users', 'email']]],
-			['regex:/^\d+,$/', ['name' => 'regex', 'parameters' => ['/^\d+,$/']]],
-			['same:pwd,1', ['name' => 'same', 'parameters' => ['pwd,1']]],
-			['required_without:first_name', ['name' => 'required_without', 'parameters' => ['first_name']]],
-			['required_with:name|max', ['name' => 'required_with', 'parameters' => ['name|max']]],
-			['different:name', ['name' => 'different', 'parameters' => ['name']]],
-			['active_url:anon', ['name' => 'active_url', 'parameters' => ['anon']]],
-			['between:20,30', ['name' => 'between', 'parameters' => ['20', '30']]],
-			['in:US,VN', ['name' => 'in', 'parameters' => ['US', 'VN']]],
-			['after:1900-01-01|before', ['name' => 'after', 'parameters' => ['1900-01-01|before']]],
-			['before:2018-01-01', ['name' => 'before', 'parameters' => ['2018-01-01']]],
-			['array', ['name' => 'array', 'parameters' => []]],
-			['mimes:csv,txt', ['name' => 'mimes', 'parameters' => ['csv', 'txt']]],
+			array('', array('name' => '', 'parameters' => array())),
+			array('required', array('name' => 'required', 'parameters' => array())),
+			array('min:3', array('name' => 'min', 'parameters' => array('3'))),
+			array('exists:users,uid', array('name' => 'exists', 'parameters' => array('users', 'uid'))),
+			array('max:255', array('name' => 'max', 'parameters' => array('255'))),
+			array('unique:users,email', array('name' => 'unique', 'parameters' => array('users', 'email'))),
+			array('regex:/^\d+,$/', array('name' => 'regex', 'parameters' => array('/^\d+,$/'))),
+			array('same:pwd,1', array('name' => 'same', 'parameters' => array('pwd,1'))),
+			array('required_without:first_name', array('name' => 'required_without', 'parameters' => array('first_name'))),
+			array('required_with:name|max', array('name' => 'required_with', 'parameters' => array('name|max'))),
+			array('different:name', array('name' => 'different', 'parameters' => array('name'))),
+			array('active_url:anon', array('name' => 'active_url', 'parameters' => array('anon'))),
+			array('between:20,30', array('name' => 'between', 'parameters' => array('20', '30'))),
+			array('in:US,VN', array('name' => 'in', 'parameters' => array('US', 'VN'))),
+			array('after:1900-01-01|before', array('name' => 'after', 'parameters' => array('1900-01-01|before'))),
+			array('before:2018-01-01', array('name' => 'before', 'parameters' => array('2018-01-01'))),
+			array('array', array('name' => 'array', 'parameters' => array())),
+			array('mimes:csv,txt', array('name' => 'mimes', 'parameters' => array('csv', 'txt'))),
 		);
 	}
 
@@ -141,22 +141,22 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 	 * @param string $expected
 	 * @dataProvider dataForGetTypeOfInput
 	 */
-	public function testGetTypeOfInput($rules = [], $expected = '')
+	public function testGetTypeOfInput($rules = array(), $expected = '')
 	{
-		$value = $this->invokeMethod($this->converter, 'getTypeOfInput', [$rules]);
+		$value = $this->invokeMethod($this->converter, 'getTypeOfInput', array($rules));
 		$this->assertEquals($expected, $value);
 	}
 
 	public function dataForGetTypeOfInput()
 	{
 		return array(
-			[[], 'string'],
-			[['required_with:name', 'numeric'], 'numeric'],
-			[['min:0', 'integer'], 'numeric'],
-			[['between:0,5', 'array'], 'array'],
-			[['before:2018-01-01', 'image'], 'file'],
-			[['max:100', 'mimes'], 'file'],
-			[['required', 'unique', 'after:1900-01-01'], 'string'],
+			array(array(), 'string'),
+			array(array('required_with:name', 'numeric'), 'numeric'),
+			array(array('min:0', 'integer'), 'numeric'),
+			array(array('between:0,5', 'array'), 'array'),
+			array(array('before:2018-01-01', 'image'), 'file'),
+			array(array('max:100', 'mimes'), 'file'),
+			array(array('required', 'unique', 'after:1900-01-01'), 'string'),
 		);
 	}
 
@@ -165,9 +165,9 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 	 * @param array $expected
 	 * @dataProvider dataForDefaultErrorMessage
 	 */
-	public function testDefaultErrorMessage($params = [], $expected = [])
+	public function testDefaultErrorMessage($params = array(), $expected = array())
 	{
-		$this->app['translator']->expects($this->exactly(2))->method('get')->willReturnCallback(function ($key, $data = []) {
+		$this->app['translator']->expects($this->exactly(2))->method('get')->willReturnCallback(function ($key, $data = array()) {
 			return $key . (empty($data) ? '' : json_encode($data));
 		});
 
@@ -178,9 +178,9 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 	public function dataForDefaultErrorMessage()
 	{
 		return array(
-			[['url', 'barFoo'], ['data-msg-url' => 'validation.url{"attribute":"bar foo"}']],
-			[['date', 'bar_Foo'], ['data-msg-date' => 'validation.date{"attribute":"bar  foo"}']],
-			[['email', 'Foo'], ['data-msg-email' => 'validation.email{"attribute":"foo"}']],
+			array(array('url', 'barFoo'), array('data-msg-url' => 'validation.url{"attribute":"bar foo"}')),
+			array(array('date', 'bar_Foo'), array('data-msg-date' => 'validation.date{"attribute":"bar  foo"}')),
+			array(array('email', 'Foo'), array('data-msg-email' => 'validation.email{"attribute":"foo"}')),
 		);
 	}
 
@@ -190,7 +190,7 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 	 * @param array $expected
 	 * @dataProvider dataForTestConvert
 	 */
-	public function testConvert($inputName = '', $inputType = null, $expected = [])
+	public function testConvert($inputName = '', $inputType = null, $expected = array())
 	{
 		$this->converter->set(FormBuilderTest::$validationRules);
 
@@ -254,108 +254,108 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 	public function dataForTestConvert()
 	{
 		return array(
-			['', null, []],
-			['not_exists', null, []],
+			array('', null, array()),
+			array('not_exists', null, array()),
 			//
-			['uid', 'text', [
+			array('uid', 'text', array(
 				'required' => 'required', 'data-msg-required' => 'The UID field is required.',
 				'minlength' => '3', 'data-msg-minlength' => 'The UID must be at least {0} characters.',
 				'maxlength' => '30', 'data-msg-maxlength' => 'The UID may not be greater than {0} characters.',
 				'pattern' => '^[A-Za-z0-9_.-]+$', 'data-msg-pattern' => 'The UID may only contain letters and numbers.',
 				'data-rule-remote' => '/laravalid/exists?params=dXNlcnMsdWlk', 'data-msg-remote' => 'The UID did not exist.',
-			]],
-			['email', 'email', [
+			)),
+			array('email', 'email', array(
 				'required' => 'required', 'data-msg-required' => 'The email field is required.',
 				'maxlength' => '255', 'data-msg-maxlength' => 'The email may not be greater than {0} characters.',
 				'data-msg-email' => 'The email must be a valid email address.',
 				'data-rule-remote' => '/laravalid/unique?params=dXNlcnMsZW1haWw', 'data-msg-remote' => 'The email has already been taken.',
-			]],
-			['url', 'url', [
+			)),
+			array('url', 'url', array(
 				'required' => 'required', 'data-msg-required' => 'The URL field is required.',
 				'maxlength' => '255', 'data-msg-maxlength' => 'The URL may not be greater than {0} characters.',
 				'data-msg-url' => 'The URL format is invalid.',
 				'data-rule-remote' => '/laravalid/unique-active_url?params[]=dXNlcnMsdXJs&params[]=',
-			]],
-			['name', 'text', [
+			)),
+			array('name', 'text', array(
 				'maxlength' => '255', 'data-msg-maxlength' => 'The name may not be greater than {0} characters.',
 				'pattern' => '^[A-Za-z_.-]+$', 'data-msg-pattern' => 'The name may only contain letters.',
-			]],
+			)),
 			//
-			['pwd', 'password', [
+			array('pwd', 'password', array(
 				'minlength' => '6', 'data-msg-minlength' => 'The password must be at least {0} characters.',
 				'maxlength' => '15', 'data-msg-maxlength' => 'The password may not be greater than {0} characters.',
 				'pattern' => '^[0-9]+[xX][0-9]+$', 'data-msg-pattern' => 'The password format is invalid.',
-			]],
-			['confirm_pwd', 'password', [
+			)),
+			array('confirm_pwd', 'password', array(
 				'minlength' => '6', 'data-msg-minlength' => 'The confirmation must be at least {0} characters.',
 				'maxlength' => '15', 'data-msg-maxlength' => 'The confirmation may not be greater than {0} characters.',
 				'data-rule-equalto' => ':input[name=\'pwd\']', 'data-msg-equalto' => 'The confirmation and password must match.',
-			]],
+			)),
 			//
-			['first_name', 'text', [
+			array('first_name', 'text', array(
 				'data-rule-required' => ':input:enabled[name=\'name\']:not(:checkbox):not(:radio):filled,input:enabled[name=\'name\']:checked',
 				'data-msg-required' => 'The first name field is required when name is present.',
 				'maxlength' => '100', 'data-msg-maxlength' => 'The first name may not be greater than {0} characters.',
 				'data-rule-notequalto' => ':input[name=\'name\']', 'data-msg-notequalto' => 'The first name and name must be different.',
-			]],
-			['last_name', 'text', [
+			)),
+			array('last_name', 'text', array(
 				'data-rule-required' => ':input:enabled[name=\'first_name\']:not(:checkbox):not(:radio):blank,input:enabled[name=\'first_name\']:unchecked',
 				'data-msg-required' => 'The last name field is required when first name is not present.',
 				'maxlength' => '100', 'data-msg-maxlength' => 'The last name may not be greater than {0} characters.',
-			]],
+			)),
 			//
-			['photo', 'url', [
+			array('photo', 'url', array(
 				'maxlength' => '1000', 'data-msg-maxlength' => 'The photo may not be greater than {0} characters.',
 				'data-msg-url' => 'The photo format is invalid.',
 				'data-rule-remote' => '/laravalid/active_url?params=YW5vbg', 'data-msg-remote' => 'The photo is not a valid URL.',
-			]],
-			['gender', null, []],// unsupported: boolean
-			['birthdate', 'date', [
+			)),
+			array('gender', null, array()),// unsupported: boolean
+			array('birthdate', 'date', array(
 				'data-msg-date' => 'The birthdate is not a valid date.',
 				'min' => '1900-01-01', 'data-msg-min' => 'The birthdate must be a date after {0}.',
 				'max' => '2018-01-01', 'data-msg-max' => 'The birthdate must be a date before {0}.',
-			]],
-			['phone', 'text', [
+			)),
+			array('phone', 'text', array(
 				'data-rule-rangelength' => '20,30', 'data-msg-rangelength' => 'The phone must be between {0} and {1} characters.',
 				'maxlength' => '30',
-			]],
-			['country', null, []],// unsupported: in
+			)),
+			array('country', null, array()),// unsupported: in
 			//
-			['rating', 'number', [
+			array('rating', 'number', array(
 				'data-msg-number' => 'The rating must be a number.',
 				'data-rule-range' => '0,100', 'data-msg-range' => 'The rating must be between {0} and {1}.',
-			]],
-			['duration', 'number', [
+			)),
+			array('duration', 'number', array(
 				'data-rule-integer' => 'true', 'data-msg-integer' => 'The length must be an integer.',
 				'min' => '0', 'data-msg-min' => 'The length must be at least {0}.',
 				'max' => '18000', 'data-msg-max' => 'The length may not be greater than {0}.',
-			]],
+			)),
 			//
-			['description', null, [
+			array('description', null, array(
 				'maxlength' => '2000', 'data-msg-maxlength' => 'The description may not be greater than {0} characters.',
-			]],
-			['roles', 'checkbox', [
+			)),
+			array('roles', 'checkbox', array(
 				'minlength' => '1', 'data-msg-minlength' => 'The roles must have at least {0} items.',
 				'maxlength' => '3', 'data-msg-maxlength' => 'The roles may not have more than {0} items.',
-			]],
+			)),
 			//
-			['avatar', 'file', [
+			array('avatar', 'file', array(
 				'accept' => 'image/*', 'data-msg-accept' => 'The avatar must be an image.',
 				'minlength' => '30', 'data-msg-minlength' => 'The avatar must be at least {0} kilobytes.',
 				'maxlength' => '300', 'data-msg-maxlength' => 'The avatar may not be greater than {0} kilobytes.',
-			]],
-			['settings', null, [
+			)),
+			array('settings', null, array(
 				'data-rule-rangelength' => '0,5', 'data-msg-rangelength' => 'The settings must have between {0} and {1} items.',
 				'maxlength' => '5',
-			]],
-			['client_ip', 'text', [
+			)),
+			array('client_ip', 'text', array(
 				'data-rule-ipv4' => 'true', 'data-msg-ipv4' => 'The client ip must be a valid IP address.',
-			]],
-			['upload', 'file', [
+			)),
+			array('upload', 'file', array(
 				'accept' => '.csv,.txt', 'data-msg-accept' => 'The upload must be a file of type: csv, txt.',
 				'data-rule-rangelength' => '100,500', 'data-msg-rangelength' => 'The upload must be between {0} and {1} kilobytes.',
 				'maxlength' => '500',
-			]],
+			)),
 		);
 	}
 }

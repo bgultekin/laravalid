@@ -11,9 +11,9 @@
 
 abstract class Container {
 
-	protected $customMethods = [];
+	protected $customMethods = array();
 
-	public function convert($name, $parameters = [])
+	public function convert($name, $parameters = array())
 	{
 		$methodName = strtolower($name);
 
@@ -24,7 +24,7 @@ abstract class Container {
 
 		if (method_exists($this, $methodName))
 		{
-			return call_user_func_array([$this, $methodName], $parameters);
+			return call_user_func_array(array($this, $methodName), $parameters);
 		}
 
 		return null;

@@ -23,22 +23,22 @@ class RouteTest extends \PHPUnit_Framework_TestCase
 	{
 		parent::setUp();
 
-		$this->validator = $this->getMock('Illuminate\Validation\Factory', ['make'], [], '', false);
-		$this->encrypter = $this->getMock('Illuminate\Encryption\Encrypter', ['decrypt'], [], '', false);
+		$this->validator = $this->getMock('Illuminate\Validation\Factory', array('make'), array(), '', false);
+		$this->encrypter = $this->getMock('Illuminate\Encryption\Encrypter', array('decrypt'), array(), '', false);
 		$this->route = new JqueryValidation\Route($this->validator, $this->encrypter);
 	}
 
 	public function testActiveUrl()
 	{
-		$validator = $this->getMock('Illuminate\Validation\Validator', ['fails', 'messages'], [], '', false);
+		$validator = $this->getMock('Illuminate\Validation\Validator', array('fails', 'messages'), array(), '', false);
 		$this->validator->expects($this->once())->method('make')
-			->with(['Bar' => 'foo'], ['Bar' => ['active_url']])->willReturn($validator);
+			->with(array('Bar' => 'foo'), array('Bar' => array('active_url')))->willReturn($validator);
 		$validator->expects($this->once())->method('fails')->willReturn(true);
-		$validator->expects($this->once())->method('messages')->willReturn(new MessageBag(['Bar' => $msg = 'Inactive URL']));
+		$validator->expects($this->once())->method('messages')->willReturn(new MessageBag(array('Bar' => $msg = 'Inactive URL')));
 
-		$response = $this->route->convert('active_url', [['Bar' => 'foo', '_' => time()]]);
+		$response = $this->route->convert('active_url', array(array('Bar' => 'foo', '_' => time())));
 		$this->assertInstanceOf('Illuminate\Http\JsonResponse', $response);
-		$this->assertEquals($msg, $response->getData());
+		$this->assertAttributeEquals('"' . $msg . '"', 'data', $response);
 	}
 
 	public function testExists()
@@ -47,14 +47,14 @@ class RouteTest extends \PHPUnit_Framework_TestCase
 			return substr($data, 1);
 		});
 
-		$validator = $this->getMock('Illuminate\Validation\Validator', ['fails'], [], '', false);
+		$validator = $this->getMock('Illuminate\Validation\Validator', array('fails'), array(), '', false);
 		$this->validator->expects($this->once())->method('make')
-			->with(['foo' => 'Bar'], ['foo' => ['exists:Tbl,field,ID']])->willReturn($validator);
+			->with(array('foo' => 'Bar'), array('foo' => array('exists:Tbl,field,ID')))->willReturn($validator);
 		$validator->expects($this->once())->method('fails')->willReturn(false);
 
-		$response = $this->route->convert('exists', [['foo' => 'Bar', 'params' => '~Tbl,field,ID', '_' => time()]]);
+		$response = $this->route->convert('exists', array(array('foo' => 'Bar', 'params' => '~Tbl,field,ID', '_' => time())));
 		$this->assertInstanceOf('Illuminate\Http\JsonResponse', $response);
-		$this->assertTrue($response->getData());
+		$this->assertAttributeEquals('true', 'data', $response);
 	}
 
 	public function testUnique()
@@ -63,21 +63,21 @@ class RouteTest extends \PHPUnit_Framework_TestCase
 			return empty($data) ? $data : substr($data, 1);
 		});
 
-		$validator = $this->getMock('Illuminate\Validation\Validator', ['fails'], [], '', false);
+		$validator = $this->getMock('Illuminate\Validation\Validator', array('fails'), array(), '', false);
 		$this->validator->expects($this->once())->method('make')
-			->with(['Foo' => 'Bar'], ['Foo' => ['unique:Tbl,field,Id,#Bar', 'active_url:anon']])->willReturn($validator);
+			->with(array('Foo' => 'Bar'), array('Foo' => array('unique:Tbl,field,Id,#Bar', 'active_url:anon')))->willReturn($validator);
 		$validator->expects($this->once())->method('fails')->willReturn(false);
 
-		$response = $this->route->convert('unique-active_url', [['Foo' => 'Bar', 'params' => ['~Tbl,field,Id,#Bar', '+anon'], '_' => time()]]);
+		$response = $this->route->convert('unique-active_url', array(array('Foo' => 'Bar', 'params' => array('~Tbl,field,Id,#Bar', '+anon'), '_' => time())));
 		$this->assertInstanceOf('Illuminate\Http\JsonResponse', $response);
-		$this->assertTrue($response->getData());
+		$this->assertAttributeEquals('true', 'data', $response);
 	}
 
 	public function testExtend()
 	{
-		$this->route->extend('unique', function ($parameters = []) {
+		$this->route->extend('unique', function ($parameters = array()) {
 			return $parameters;
 		});
-		$this->assertEquals($params = ['foo' => '?', 'params' => '~'], $this->route->convert('Unique', [$params]));
+		$this->assertEquals($params = array('foo' => '?', 'params' => '~'), $this->route->convert('Unique', array($params)));
 	}
 }

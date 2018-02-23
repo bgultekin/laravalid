@@ -24,7 +24,7 @@ class LaravalidServiceProvider extends ServiceProvider {
 		$routeName = $app['config']->get('laravalid::route', 'laravalid');
 
 		$app['router']->any($routeName . '/{rule}', function ($rule) use ($app) {
-			return $app['laravalid']->converter()->route()->convert($rule, [$app['request']->all()]);
+			return $app['laravalid']->converter()->route()->convert($rule, array($app['request']->all()));
 		})->where('rule', '[\w-]+');
 	}
 
@@ -35,14 +35,14 @@ class LaravalidServiceProvider extends ServiceProvider {
 	{
 		// try to register the HTML builder instance
 		if (!$this->app->bound('html')) {
-			$this->app->bindShared('html', function($app)
+			$this->app->singleton('html', $this->app->share(function($app)
 			{
 				return new \Illuminate\Html\HtmlBuilder($app['url']);
-			});
+			}));
 		}
 
 		// register the new form builder instance
-		$this->app->bindShared('laravalid', function ($app) {
+		$this->app->singleton('laravalid', $this->app->share(function ($app) {
 			/* @var $app \Illuminate\Container\Container */
 			$plugin = $app['config']->get('laravalid::plugin');
 			$converterClass = (strpos($plugin, '\\') === false ? 'Bllim\Laravalid\Converter\\' : '') . $plugin . '\Converter';
@@ -52,7 +52,7 @@ class LaravalidServiceProvider extends ServiceProvider {
 			$form = new FormBuilder($app['html'], $app['url'], $session->getToken(), new $converterClass($app));
 
 			return $form->setSessionStore($session);
-		});
+		}));
 	}
 
 	/**

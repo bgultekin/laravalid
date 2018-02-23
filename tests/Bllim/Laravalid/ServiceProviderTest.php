@@ -1,7 +1,5 @@
 <?php namespace Bllim\Laravalid;
 
-use Illuminate\Html\HtmlBuilder;
-
 class ServiceProviderTest extends \PHPUnit_Framework_TestCase
 {
 	public function testDeferred()
@@ -25,21 +23,22 @@ class ServiceProviderTest extends \PHPUnit_Framework_TestCase
 		$app->expects($this->once())->method('bound')->with('html')->willReturn(false);
 		$app->expects($this->exactly(2))->method('bind')
 			->withConsecutive(
-				array('html', $this->callback(function ($closure) use ($app, &$html) {
-					$html = $closure($app);
-					return ($html instanceof HtmlBuilder);
-				}), $this->isTrue()),
-				array('laravalid', $this->callback(function ($closure) use ($app) {
-					$form = $closure($app);
-					return ($form instanceof FormBuilder);
-				}), $this->isTrue())
-			);
+				array('html', $this->isType(\PHPUnit_Framework_Constraint_IsType::TYPE_CALLABLE), $this->isTrue()),
+				array('laravalid', $this->isType(\PHPUnit_Framework_Constraint_IsType::TYPE_CALLABLE), $this->isTrue())
+			)
+			->willReturnCallback(function ($abstract, $closure) use ($app, &$html) {
+				$object = $closure($app);
+				if ($abstract == 'html') $html = $object;
+
+				\PHPUnit_Framework_TestCase::assertNotEmpty($object);
+				\PHPUnit_Framework_TestCase::assertContains('\\' . ucfirst($abstract) . '\\', get_class($object));
+			});
 
 		$url = $this->getMock('Illuminate\Routing\UrlGenerator', array('to'), array(), '', false);
 		$config = $this->getMock('Illuminate\Config\Repository', array('get'), array(), '', false);
 		$session = $this->getMock('Illuminate\Session\Store', array('getToken'), array(), '', false);
 
-		$app->expects($this->atLeast(4))->method('make')->withConsecutive(['url'], ['config'])->willReturnMap(array(
+		$app->expects($this->atLeast(4))->method('make')->withConsecutive(array('url'), array('config'))->willReturnMap(array(
 			array('url', array(), $url),
 			array('config', array(), $config),
 			array('session.store', array(), $session),
@@ -72,7 +71,7 @@ class ServiceProviderTest extends \PHPUnit_Framework_TestCase
 		$valid = $this->getMock(__NAMESPACE__ . '\Converter\Base\Route', array('convert'), array(), '', false);
 		$request = $this->getMock('Illuminate\Http\Request', array('all'), array(), '', false);
 
-		$app->expects($this->atLeast(5))->method('make')->withConsecutive(['files'], ['config'])->willReturnMap(array(
+		$app->expects($this->atLeast(5))->method('make')->withConsecutive(array('files'), array('config'))->willReturnMap(array(
 			array('files', array(), $files),
 			array('config', array(), $config),
 			array('router', array(), $router),
@@ -85,8 +84,8 @@ class ServiceProviderTest extends \PHPUnit_Framework_TestCase
 		$config->expects($this->once())->method('get')->with('laravalid::route', 'laravalid')->willReturnArgument(1);
 
 		$router->expects($this->once())->method('any')->willReturnCallback(function ($url, $action) use ($route) {
-			static::assertEquals('laravalid/{rule}', $url);
-			static::assertEquals('["exists",[{"params":"~"}]]', $action('exists'));
+			\PHPUnit_Framework_TestCase::assertEquals('laravalid/{rule}', $url);
+			\PHPUnit_Framework_TestCase::assertEquals('["exists",[{"params":"~"}]]', $action('exists'));
 			return $route;
 		});
 		$route->expects($this->once())->method('where')->with('rule', '[\w-]+');
