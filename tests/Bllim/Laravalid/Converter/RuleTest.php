@@ -1,11 +1,9 @@
 <?php namespace Bllim\Laravalid\Converter;
 
-use Illuminate\Contracts\Encryption\Encrypter;
-
 class RuleTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \Mockery\MockInterface|Encrypter
+     * @var \PHPUnit_Framework_MockObject_MockObject|\Illuminate\Contracts\Encryption\Encrypter
      */
     protected $encrypter;
 
@@ -18,21 +16,15 @@ class RuleTest extends \PHPUnit_Framework_TestCase
     {
         parent::setUp();
 
-        $this->encrypter = \Mockery::mock(Encrypter::class);
+        $this->encrypter = $this->getMock('Illuminate\Contracts\Encryption\Encrypter');
         $this->rule = new JqueryValidation\Rule(static::routeUrl(), $this->encrypter);
-    }
-
-    protected function tearDown()
-    {
-        parent::tearDown();
-        \Mockery::close();
     }
 
     protected static function routeUrl()
     {
         static $url;
         if (!isset($url))
-            $url = ['http://localhost:8000/laravalid', '/laravalid'][mt_rand(0, 1)];
+            $url = array_rand(array_flip(['http://localhost:8000/laravalid', '/laravalid']));
         return $url;
     }
 
@@ -116,7 +108,7 @@ class RuleTest extends \PHPUnit_Framework_TestCase
      */
     public function testRemoteRules($name = '', $params = [], $expected = [])
     {
-        $this->encrypter->shouldReceive('encrypt')->andReturnUsing(function ($data) {
+        $this->encrypter->expects($this->any())->method('encrypt')->willReturnCallback(function ($data) {
             return '~' . $data;
         });
         $value = call_user_func_array([$this->rule, strtolower($name)], $params);

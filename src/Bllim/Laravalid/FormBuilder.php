@@ -34,7 +34,10 @@ class FormBuilder extends \Collective\Html\FormBuilder
 
     public function __construct(HtmlBuilder $html, UrlGenerator $url, Factory $view, $csrfToken, Converter\Base\Converter $converter, Request $request = null)
     {
-        parent::__construct($html, $url, $view, $csrfToken, $request);
+        if (with(new \ReflectionClass('Collective\Html\FormBuilder'))->getConstructor()->getNumberOfParameters() > 3)
+            parent::__construct($html, $url, $view, $csrfToken, $request);
+        else
+            parent::__construct($html, $url, $csrfToken);
 
         $this->converter = $converter;
     }

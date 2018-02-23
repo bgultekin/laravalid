@@ -2,9 +2,6 @@
 
 namespace Bllim\Laravalid\Converter\Base;
 
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\Routing\ResponseFactory;
-
 /**
  * Base converter class for converter plugins.
  * 
@@ -79,17 +76,19 @@ abstract class Converter
      */
     protected $useLaravelMessages;
 
-    public function __construct(Application $app)
+    /**
+     * @param \Illuminate\Contracts\Foundation\Application|\ArrayAccess $app
+     */
+    public function __construct($app)
     {
-        /* @var $app Application|\ArrayAccess */
-        $config = $app['config'];
         /* @var $config \Illuminate\Contracts\Config\Repository */
+        $config = $app['config'];
         $routeUrl = $app['url']->to($config->get('laravalid.route', 'laravalid'));
 
-        $ns = substr(static::class, 0, -9) ?: '\\';
+        $ns = substr($class = get_class($this), 0, strrpos($class, '\\')) . '\\';
         ($class = $ns . 'Rule') and static::$rule = new $class($routeUrl, $app['encrypter']);
         ($class = $ns . 'Message') and static::$message = new $class($app['translator']);
-        ($class = $ns . 'Route') and static::$route = new $class($app['validator'], $app[ResponseFactory::class], $app['encrypter']);
+        ($class = $ns . 'Route') and static::$route = new $class($app['validator'], $app['Illuminate\Contracts\Routing\ResponseFactory'], $app['encrypter']);
 
         $this->useLaravelMessages = $config->get('laravalid.useLaravelMessages', true);
     }

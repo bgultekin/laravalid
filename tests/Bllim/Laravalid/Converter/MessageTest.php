@@ -1,11 +1,9 @@
 <?php namespace Bllim\Laravalid\Converter;
 
-use Illuminate\Translation\Translator;
-
 class MessageTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \Mockery\MockInterface|Translator
+     * @var \PHPUnit_Framework_MockObject_MockObject|\Illuminate\Translation\Translator
      */
     protected $translator;
 
@@ -18,14 +16,8 @@ class MessageTest extends \PHPUnit_Framework_TestCase
     {
         parent::setUp();
 
-        $this->translator = \Mockery::mock(Translator::class);
+        $this->translator = $this->getMock('Illuminate\Translation\Translator', ['has', 'get'], [], '', false);
         $this->message = new JqueryValidation\Message($this->translator);
-    }
-
-    protected function tearDown()
-    {
-        parent::tearDown();
-        \Mockery::close();
     }
 
     public function testExtend()
@@ -43,37 +35,27 @@ class MessageTest extends \PHPUnit_Framework_TestCase
 
     public function testGetValidationMessage()
     {
-        $this->translator->shouldReceive('has')->once()->andReturn(false);
-        $this->translator->shouldReceive('get')->with('validation.attributes.first_name')->once()->andReturnUsing(function ($key) {
-            return $key;
-        });
-        $this->translator->shouldReceive('get')
-            ->with('validation.active_url', ['other' => 'old_name', 'attribute' => 'first name'])->once()
-            ->andReturnUsing(function ($key, $data) {
-                return ($key == 'validation.active_url') ? $data['attribute'] . ' === ' . $data['other'] : $key;
-            });
+        $this->translator->expects($this->exactly(3))->method('has')
+            ->withConsecutive([$this->anything()], ['validation.custom.lastName.email'], [$this->anything()])
+            ->willReturnOnConsecutiveCalls(false, true, false);
+        //
+        $this->translator->expects($this->exactly(6))->method('get')
+            ->withConsecutive(
+                ['validation.attributes.first_name'], ['validation.active_url', ['other' => 'old_name', 'attribute' => 'first name']],
+                ['validation.attributes.lastName'], ['validation.custom.lastName.email', ['max' => '100', 'attribute' => 'Last name']],
+                ['validation.attributes.foo'], ['validation.max.numeric', ['attribute' => 'Bar']]
+            )
+            ->willReturnOnConsecutiveCalls(
+                'validation.attributes.first_name', 'first name === old_name',
+                'Last name', 'Last name <= 100',
+                'Bar', 'validation.max.numeric'
+            );
 
         $value = $this->message->getValidationMessage('first_name', 'activeUrl', ['other' => 'old_name']);
         $this->assertEquals('first name === old_name', $value);
 
-        //
-        $this->translator->shouldReceive('has')->with('validation.custom.lastName.email')->once()->andReturn(true);
-        $this->translator->shouldReceive('get')->with('validation.attributes.lastName')->once()->andReturn('Last name');
-        $this->translator->shouldReceive('get')
-            ->with('validation.custom.lastName.email', ['max' => '100', 'attribute' => 'Last name'])->once()
-            ->andReturnUsing(function ($key, $data) {
-                return ($key == 'validation.custom.lastName.email') ? $data['attribute'] . ' <= ' . $data['max'] : $key;
-            });
-
         $value = $this->message->getValidationMessage('lastName', 'email', ['max' => '100']);
         $this->assertEquals('Last name <= 100', $value);
-
-        //
-        $this->translator->shouldReceive('has')->once()->andReturn(false);
-        $this->translator->shouldReceive('get')->with('validation.attributes.foo')->once()->andReturn('Bar');
-        $this->translator->shouldReceive('get')->with('validation.max.numeric', ['attribute' => 'Bar'])->once()->andReturnUsing(function ($key) {
-            return $key;
-        });
 
         $value = $this->message->getValidationMessage('foo', 'max', [], 'numeric');
         $this->assertEquals('validation.max.numeric', $value);
@@ -87,8 +69,8 @@ class MessageTest extends \PHPUnit_Framework_TestCase
      */
     public function testAllRules($name = '', $params = [], $expected = [])
     {
-        $this->translator->shouldReceive('has')->times(2)->andReturn(preg_match('/^[A-Z]/', $name));
-        $this->translator->shouldReceive('get')->atLeast()->times(4)->andReturnUsing(function ($key, $data = null) {
+        $this->translator->expects($this->exactly(2))->method('has')->willReturn(preg_match('/^[A-Z]/', $name));
+        $this->translator->expects($this->atLeast(4))->method('get')->willReturnCallback(function ($key, $data = null) {
             return $key . (empty($data) ? '' : json_encode($data));
         });
 

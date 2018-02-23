@@ -212,7 +212,7 @@ class Rule extends \Bllim\Laravalid\Converter\Base\Rule
             }
         }
 
-        $outputAttributes += $ruleAttributes;
+        $outputAttributes = parent::mergeOutputAttributes($outputAttributes, $ruleAttributes, $inputType);
 
         // remove duplicated rule attributes
         if (!empty($inputType) && isset($ruleAttributes[$k = 'data-rule-' . $inputType]) && strcasecmp('true', $ruleAttributes[$k]) == 0)

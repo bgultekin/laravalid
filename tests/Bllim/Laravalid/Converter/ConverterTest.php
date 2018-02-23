@@ -1,18 +1,11 @@
 <?php namespace Bllim\Laravalid\Converter;
 
 use Bllim\Laravalid\FormBuilderTest;
-use Illuminate\Contracts\Config\Repository;
-use Illuminate\Contracts\Encryption\Encrypter;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\Routing\UrlGenerator;
-use Illuminate\Contracts\Translation\Loader;
-use Illuminate\Translation\LoaderInterface;
-use Illuminate\Translation\Translator;
 
 class ConverterTest extends \PHPUnit_Framework_TestCase
 {
     /**
-     * @var \Mockery\MockInterface|Application
+     * @var \PHPUnit_Framework_MockObject_MockObject|\Illuminate\Contracts\Foundation\Application|\ArrayAccess
      */
     protected $app;
 
@@ -21,39 +14,42 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
      */
     protected $converter;
 
-    static function initApplicationMock($mocks = [])
+    /**
+     * @param \PHPUnit_Framework_TestCase $test
+     * @param bool $trans Mock Translator::get() method?
+     * @return \PHPUnit_Framework_MockObject_MockObject|\Illuminate\Contracts\Foundation\Application|\ArrayAccess
+     */
+    static function initApplicationMock(\PHPUnit_Framework_TestCase $test, $trans = false)
     {
-        $config = \Mockery::mock(Repository::class);
-        $config->shouldReceive('get')->zeroOrMoreTimes()->andReturnUsing(function ($key, $default = null) {
+        $config = $test->getMock('Illuminate\Config\Repository', ['get'], [], '', false);
+        $config->expects($test->any())->method('get')->willReturnCallback(function ($key, $default = null) {
             return isset($default) ? $default : ($key == 'laravalid::plugin' ? 'JqueryValidation' : null);
         });
 
-        $url = \Mockery::mock(UrlGenerator::class);
-        $url->shouldReceive('to')->andReturnUsing(function ($path) {
+        $url = $test->getMock('Illuminate\Routing\UrlGenerator', ['to'], [], '', false);
+        $url->expects($test->any())->method('to')->willReturnCallback(function ($path) {
             return '/' . ltrim($path, '/');
         });
 
-        /* @var $encrypter \Mockery\MockInterface|Encrypter */
-        $encrypter = \Mockery::mock(Encrypter::class);
-        $encrypter->shouldReceive('encrypt')->andReturnUsing(function ($data) {
+        $encrypter = $test->getMock('Illuminate\Contracts\Encryption\Encrypter');
+        $encrypter->expects($test->any())->method('encrypt')->willReturnCallback(function ($data) {
             return str_replace(['/', '+', '='], ['_', '-', ''], base64_encode($data));
         });
 
-        /* @var $loader \Mockery\MockInterface|LoaderInterface|Loader */
-        $loader = \Mockery::mock(interface_exists(Loader::class) ? Loader::class : LoaderInterface::class);
-        $loader->shouldReceive('load')->with('en', 'validation', '*')->andReturn(static::$messages);
+        $loader = $test->getMock(interface_exists($cls = 'Illuminate\Contracts\Translation\Loader') ? $cls : 'Illuminate\Translation\LoaderInterface');
+        $loader->expects($test->any())->method('load')->with('en', 'validation', '*')->willReturn(static::$messages);
         //
-        $translator = \Mockery::mock(new Translator($loader, 'en'));
-        $translator->shouldReceive('has')->zeroOrMoreTimes()->andReturn(false);
+        $translator = $test->getMock('Illuminate\Translation\Translator', !$trans ? ['has'] : ['has', 'get'], [$loader, 'en']);
+        $translator->expects($test->any())->method('has')->willReturn(false);
 
-        $mocks += compact('config', 'url', 'encrypter', 'translator');
-        /* @var $app \Mockery\MockInterface|Application */
-        $app = \Mockery::mock(Application::class . ', ' . \ArrayAccess::class);
-
-        $app->shouldReceive('make')->andReturnUsing($func = function ($key) use ($mocks) {
-            return isset($mocks[$key]) ? $mocks[$key] : null;
-        });
-        $app->shouldReceive('offsetGet')->zeroOrMoreTimes()->andReturnUsing($func);
+        $app = $test->getMock('Illuminate\Container\Container', ['make']);
+        $app->expects($test->any())->method('make')->willReturnMap([
+            ['config', [], $config],
+            ['url', [], $url],
+            ['encrypter', [], $encrypter],
+            ['translator', [], $translator],
+            ['view', [], $test->getMock('Illuminate\Contracts\View\Factory')],
+        ]);
 
         return $app;
     }
@@ -62,14 +58,8 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
     {
         parent::setUp();
 
-        $this->app = $this->initApplicationMock();
+        $this->app = $this->initApplicationMock($this, $this->getName(false) == 'testDefaultErrorMessage');
         $this->converter = new JqueryValidation\Converter($this->app);
-    }
-
-    protected function tearDown()
-    {
-        parent::tearDown();
-        \Mockery::close();
     }
 
     static function invokeMethod($object, $methodName, $parameters = array())
@@ -82,9 +72,9 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
 
     public function testConstructor()
     {
-        $this->assertEquals(JqueryValidation\Rule::class, get_class($this->converter->rule()));
-        $this->assertEquals(JqueryValidation\Message::class, get_class($this->converter->message()));
-        $this->assertEquals(JqueryValidation\Route::class, get_class($this->converter->route()));
+        $this->assertInstanceOf(__NAMESPACE__ . '\JqueryValidation\Rule', $this->converter->rule());
+        $this->assertInstanceOf(__NAMESPACE__ . '\JqueryValidation\Message', $this->converter->message());
+        $this->assertInstanceOf(__NAMESPACE__ . '\JqueryValidation\Route', $this->converter->route());
 
         $this->assertAttributeEquals($this->converter->rule(), 'rule', $this->converter);
         $this->assertAttributeEquals($this->converter->message(), 'message', $this->converter);
@@ -178,9 +168,7 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
      */
     public function testDefaultErrorMessage($params = [], $expected = [])
     {
-        $translator = $this->app['translator'];
-        /* @var $translator \Mockery\MockInterface|Translator */
-        $translator->shouldReceive('get')->times(2)->andReturnUsing(function ($key, $data = []) {
+        $this->app['translator']->expects($this->exactly(2))->method('get')->willReturnCallback(function ($key, $data = []) {
             return $key . (empty($data) ? '' : json_encode($data));
         });
 

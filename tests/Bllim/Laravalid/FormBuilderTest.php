@@ -1,13 +1,11 @@
 <?php namespace Bllim\Laravalid;
 
 use Collective\Html\HtmlBuilder;
-use Illuminate\Contracts\View\Factory;
 
 class FormBuilderTest extends \PHPUnit_Framework_TestCase
 {
-
     /**
-     * @var \Mockery\MockInterface|Converter\Base\Converter
+     * @var \PHPUnit_Framework_MockObject_MockObject|Converter\Base\Converter
      */
     protected $converter;
 
@@ -19,27 +17,29 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
     public static function setUpBeforeClass()
     {
         parent::setUpBeforeClass();
+        /** @noinspection PhpUnusedParameterInspection */
+        set_error_handler(function ($errNo, $errStr) {
+            return (strpos($errStr, 'Declaration of ' . __NAMESPACE__ . '\FormBuilder::select(') !== false
+                && strpos($errStr, ' should be compatible with') !== false);
+        }, E_STRICT | E_WARNING);
+    }
 
-        error_reporting(error_reporting() & ~E_STRICT);
+    public static function tearDownAfterClass()
+    {
+        parent::tearDownAfterClass();
+        restore_error_handler();
     }
 
     protected function setUp()
     {
         parent::setUp();
 
-        /* @var $view \Mockery\MockInterface|Factory */
-        $view = \Mockery::mock(Factory::class);
+        $app = Converter\ConverterTest::initApplicationMock($this);
+        $this->converter = ($this->getName(false) == 'testIntegration')
+            ? new Converter\JqueryValidation\Converter($app)
+            : $this->getMock(__NAMESPACE__ . '\Converter\Base\Converter', ['set', 'reset', 'convert'], [], '', false);
 
-        $app = Converter\ConverterTest::initApplicationMock(compact('view'));
-        $this->converter = \Mockery::mock(new Converter\JqueryValidation\Converter($app));
-
-        $this->form = new FormBuilder(new HtmlBuilder($url = $app['url'], $view), $url, $view, '_csrf_token', $this->converter);
-    }
-
-    protected function tearDown()
-    {
-        parent::tearDown();
-        \Mockery::close();
+        $this->form = new FormBuilder(new HtmlBuilder($url = $app['url'], $view = $app['view']), $url, $view, '_csrf_token', $this->converter);
     }
 
     /**
@@ -49,9 +49,7 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
      */
     public function testRawAttributeName($paramValue, $expectedValue)
     {
-        $this->converter->shouldReceive('convert')->once()->andReturnUsing(function ($name) {
-            return $name;
-        });
+        $this->converter->expects($this->once())->method('convert')->willReturnArgument(0);
         $value = Converter\ConverterTest::invokeMethod($this->form, 'getValidationAttributes', $paramValue);
 
         $this->assertEquals($expectedValue, $value);
@@ -74,16 +72,16 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testSetValidation()
     {
-        $this->converter->shouldReceive('set')->with(null, null)->once();
+        $this->converter->expects($this->once())->method('set')->with(null, null);
         $this->form->setValidation(null);
 
-        $this->converter->shouldReceive('reset')->once();
+        $this->converter->expects($this->once())->method('reset');
         $this->form->resetValidation();
     }
 
     public function testOpen()
     {
-        $this->converter->shouldReceive('set')->with($rules = ['bar'], null)->once();
+        $this->converter->expects($this->once())->method('set')->with($rules = ['bar'], null);
         $html = $this->form->open(['url' => '/', 'method' => 'get'], $rules);
 
         $this->assertEquals('<form method="GET" action="/" accept-charset="UTF-8">', $html);
@@ -91,8 +89,8 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testModel()
     {
-        $this->converter->shouldReceive('set')->with($rules = ['foo' => true], null)->once();
-        $this->converter->shouldReceive('set')->with(null, null)->once();
+        $this->converter->expects($this->exactly(2))->method('set')
+            ->withConsecutive([$rules = ['foo' => true], null], [null, null]);
 
         $html = $this->form->model(new \stdClass(), ['url' => '/', 'method' => 'get'], $rules);
 
@@ -101,22 +99,21 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testClose()
     {
-        $this->converter->shouldReceive('reset')->once();
+        $this->converter->expects($this->once())->method('reset');
         $this->assertEquals('</form>', $this->form->close());
     }
 
     public function testInput()
     {
-        $this->converter->shouldReceive('convert')->once()->andReturnUsing(function ($name, $type = null) {
-            return [$name => $type];
-        });
+        $this->converter->expects($this->exactly(2))->method('convert')
+            ->withConsecutive(['foo', 'date'], ['bar', 'url'])
+            ->willReturnOnConsecutiveCalls(['foo' => 'date'], []);
         $html = (string)$this->form->input('date', 'foo[]');
 
         $this->assertStringEndsWith('>', $html);
         $this->assertStringStartsWith('<input ', $html);
         $this->assertContains(' foo="date"', $html);
 
-        $this->converter->shouldReceive('convert')->with('bar', 'url')->once()->andReturn([]);
         $html = (string)$this->form->url('bar[]');
 
         $this->assertStringEndsWith('>', $html);
@@ -127,7 +124,7 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testTextArea()
     {
-        $this->converter->shouldReceive('convert')->with('bar', null)->once()->andReturn([]);
+        $this->converter->expects($this->once())->method('convert')->with('bar', null)->willReturn([]);
         $html = (string)$this->form->textarea('bar[]');
 
         $this->assertStringEndsWith('>', $html);
@@ -137,7 +134,7 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testSelect()
     {
-        $this->converter->shouldReceive('convert')->with('bar_foo', null)->once()->andReturn([]);
+        $this->converter->expects($this->once())->method('convert')->with('bar_foo', null)->willReturn([]);
         $html = (string)$this->form->select('bar_foo');
 
         $this->assertStringEndsWith('>', $html);
@@ -147,7 +144,8 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 
     public function testCheckbox()
     {
-        $this->converter->shouldReceive('convert')->with('foo', 'checkbox')->once()->andReturn([]);
+        $this->converter->expects($this->exactly(2))->method('convert')
+            ->withConsecutive(['foo', 'checkbox'], ['bar', 'radio'])->willReturn([]);
         $html = (string)$this->form->checkbox('foo[]');
 
         $this->assertStringEndsWith('>', $html);
@@ -155,7 +153,6 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
         $this->assertContains(' name="foo[]"', $html);
         $this->assertContains(' type="checkbox"', $html);
 
-        $this->converter->shouldReceive('convert')->with('bar', 'radio')->once()->andReturn([]);
         $html = (string)$this->form->radio('bar[]');
 
         $this->assertStringEndsWith('>', $html);
@@ -345,5 +342,4 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('</form>', $this->form->close());
         $this->assertEquals([], $this->converter->getValidationRules());
     }
-
 }
