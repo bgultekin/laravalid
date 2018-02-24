@@ -120,10 +120,10 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 	/**
 	 * @see Illuminate\Html\FormBuilder
 	 */
-	public function select($name, $list = [], $selected = null, $options = [], )
+	public function select($name, $list = [], $selected = null, $options = [], $groupOptions = [])
 	{
-		$options = $this->converter->convert(Helper::getFormAttribute($name)) + $options;
-		return parent::select($name, $list, $selected, $options);
+		$options = $this->converter->convert(Helper::getFormAttribute($name)) + $options + $groupOptions;
+		return parent::select($name, $list, $selected, $options, $groupOptions);
 	}
 
 	protected function checkable($type, $name, $value, $checked, $options)
