@@ -120,7 +120,7 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 	/**
 	 * @see Illuminate\Html\FormBuilder
 	 */
-	public function select($name, $list = [], $selected = null, $options = [])
+	public function select($name, $list = [], $selected = null, $options = [], )
 	{
 		$options = $this->converter->convert(Helper::getFormAttribute($name)) + $options;
 		return parent::select($name, $list, $selected, $options);
