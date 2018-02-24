@@ -122,11 +122,11 @@ class FormBuilder extends \Collective\Html\FormBuilder
     /**
      * {@inheritdoc}
      */
-    public function select($name, $list = [], $selected = null, array $selectAttributes = [], array $optionsAttributes = [])
+    public function select($name, $list = [], $selected = null, array $selectAttributes = [], array $optionsAttributes = [], array $optgroupsAttributes = [])
     {
         $selectAttributes += $this->getValidationAttributes($name);
 
-        return parent::select($name, $list, $selected, $selectAttributes, $optionsAttributes);
+        return parent::select($name, $list, $selected, $selectAttributes, $optionsAttributes, $optgroupsAttributes);
     }
 
     /**
