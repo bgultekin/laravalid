@@ -40,7 +40,7 @@ Require `bllim/laravalid` in composer.json and run `composer update`.
         ...
     }
 ```
-> **Note:** For **Laravel 4** use `laravel4` branch like as `"bllim/laravalid": "dev-laravel4"`
+> **Note:** For **Laravel 4** use `laravel4` branch like as `"bllim/laravalid": "dev-laravel4"` or `"~0.9"`
 
 Composer will download the package. After the package is downloaded, open `config/app.php` and add the service provider and alias as below:
 ```php
