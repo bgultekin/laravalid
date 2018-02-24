@@ -30,15 +30,15 @@ abstract class Route extends Container {
 		$this->encrypter = $encrypter;
 	}
 
-	public function convert($name, $parameters = [])
+	public function convert($name, $parameters = array())
 	{
 		if (!is_null($result = parent::convert($name, $parameters)))
 			return $result;
 
-		return $this->defaultRoute($name, reset($parameters) ?: []);
+		return $this->defaultRoute($name, reset($parameters) ?: array());
 	}
 
-	protected function defaultRoute($name, $parameters = [])
+	protected function defaultRoute($name, $parameters = array())
 	{
 		$params = $this->decryptParameters($parameters);
 
@@ -60,7 +60,7 @@ abstract class Route extends Container {
 
 	protected function decryptParameters(array &$parameters)
 	{
-		$params = empty($parameters['params']) ? []
+		$params = empty($parameters['params']) ? array()
 			: (is_array($parameters['params']) ? $parameters['params'] : array($parameters['params']));
 		unset($parameters['params'], $parameters['_']);
 

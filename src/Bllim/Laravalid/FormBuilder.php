@@ -88,7 +88,7 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function input($type, $name, $value = null, $options = [])
+	public function input($type, $name, $value = null, $options = array())
 	{
 		$options += $this->getValidationAttributes($name, $type);
 		return parent::input($type, $name, $value, $options);
@@ -97,7 +97,7 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function textarea($name, $value = null, $options = [])
+	public function textarea($name, $value = null, $options = array())
 	{
 		$options += $this->getValidationAttributes($name);
 		return parent::textarea($name, $value, $options);
@@ -106,7 +106,7 @@ class FormBuilder extends \Illuminate\Html\FormBuilder {
 	/**
 	 * {@inheritdoc}
 	 */
-	public function select($name, $list = [], $selected = null, $options = [])
+	public function select($name, $list = array(), $selected = null, $options = array())
 	{
 		$options += $this->getValidationAttributes($name);
 		return parent::select($name, $list, $selected, $options);

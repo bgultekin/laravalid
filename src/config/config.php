@@ -1,7 +1,7 @@
 <?php
 
-return [
+return array(
 	'useLaravelMessages'	=>	true,
 	'plugin'	=>	'JqueryValidation',
 	'route'	=>	'laravalid'
-];
+);

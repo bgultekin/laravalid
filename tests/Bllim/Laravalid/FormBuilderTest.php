@@ -4,9 +4,8 @@ use Illuminate\Html\HtmlBuilder;
 
 class FormBuilderTest extends \PHPUnit_Framework_TestCase
 {
-
 	/**
-	 * @var \Mockery\MockInterface|Converter\Base\Converter
+	 * @var \PHPUnit_Framework_MockObject_MockObject|Converter\Base\Converter
 	 */
 	protected $converter;
 
@@ -19,16 +18,16 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 	{
 		parent::setUp();
 
-		$app = Converter\ConverterTest::initApplicationMock();
-		$this->converter = \Mockery::mock(new Converter\JqueryValidation\Converter($app));
+		$app = Converter\ConverterTest::initApplicationMock($this);
+		$this->converter = ($this->getName(false) == 'testIntegration')
+			? new Converter\JqueryValidation\Converter($app)
+			: $this->getMock(__NAMESPACE__ . '\Converter\Base\Converter', array('set', 'reset', 'convert'), array(), '', false);
 
 		$this->form = new FormBuilder(new HtmlBuilder($url = $app['url']), $url, '_csrf_token', $this->converter);
-	}
 
-	protected function tearDown()
-	{
-		parent::tearDown();
-		\Mockery::close();
+		$session = $this->getMock('Illuminate\Session\Store', array('get'), array(), '', false);
+		$this->form->setSessionStore($session);
+		$session->expects($this->any())->method('get')->willReturnArgument(1);
 	}
 
 	/**
@@ -38,9 +37,7 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 	 */
 	public function testRawAttributeName($paramValue, $expectedValue)
 	{
-		$this->converter->shouldReceive('convert')->once()->andReturnUsing(function ($name) {
-			return $name;
-		});
+		$this->converter->expects($this->once())->method('convert')->willReturnArgument(0);
 		$value = Converter\ConverterTest::invokeMethod($this->form, 'getValidationAttributes', $paramValue);
 
 		$this->assertEquals($expectedValue, $value);
@@ -52,59 +49,58 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 	public function dataForTestRawAttributeName()
 	{
 		return array(
-			['Bar', 'Bar'],
-			['bar_Foo[]', 'bar_Foo'],
-			['Foo[][1]', 'Foo'],
-			['foo[1][]', 'foo'],
-			['Foo[Bar][0]', 'Foo'],
+			array('Bar', 'Bar'),
+			array('bar_Foo[]', 'bar_Foo'),
+			array('Foo[][1]', 'Foo'),
+			array('foo[1][]', 'foo'),
+			array('Foo[Bar][0]', 'Foo'),
 		);
 	}
 
 	public function testSetValidation()
 	{
-		$this->converter->shouldReceive('set')->with(null)->once();
+		$this->converter->expects($this->once())->method('set')->with(null);
 		$this->form->setValidation(null);
 
-		$this->converter->shouldReceive('reset')->once();
+		$this->converter->expects($this->once())->method('reset');
 		$this->form->resetValidation();
 	}
 
 	public function testOpen()
 	{
-		$this->converter->shouldReceive('set')->with($rules = ['bar'])->once();
-		$html = $this->form->open(['url' => '/', 'method' => 'get'], $rules);
+		$this->converter->expects($this->once())->method('set')->with($rules = array('bar'));
+		$html = $this->form->open(array('url' => '/', 'method' => 'get'), $rules);
 
 		$this->assertEquals('<form method="GET" action="/" accept-charset="UTF-8">', $html);
 	}
 
 	public function testModel()
 	{
-		$this->converter->shouldReceive('set')->with($rules = ['foo' => true])->once();
-		$this->converter->shouldReceive('set')->with(null)->once();
+		$this->converter->expects($this->exactly(2))->method('set')
+			->withConsecutive(array($rules = array('foo' => true)), array(null));
 
-		$html = $this->form->model(new \stdClass(), ['url' => '/', 'method' => 'get'], $rules);
+		$html = $this->form->model(new \stdClass(), array('url' => '/', 'method' => 'get'), $rules);
 
 		$this->assertEquals('<form method="GET" action="/" accept-charset="UTF-8">', $html);
 	}
 
 	public function testClose()
 	{
-		$this->converter->shouldReceive('reset')->once();
+		$this->converter->expects($this->once())->method('reset');
 		$this->assertEquals('</form>', $this->form->close());
 	}
 
 	public function testInput()
 	{
-		$this->converter->shouldReceive('convert')->once()->andReturnUsing(function ($name, $type = null) {
-			return [$name => $type];
-		});
+		$this->converter->expects($this->exactly(2))->method('convert')
+			->withConsecutive(array('foo', 'date'), array('bar', 'url'))
+			->willReturnOnConsecutiveCalls(array('foo' => 'date'), array());
 		$html = $this->form->input('date', 'foo[]');
 
 		$this->assertStringEndsWith('>', $html);
 		$this->assertStringStartsWith('<input ', $html);
 		$this->assertContains(' foo="date"', $html);
 
-		$this->converter->shouldReceive('convert')->with('bar', 'url')->once()->andReturn([]);
 		$html = $this->form->url('bar[]');
 
 		$this->assertStringEndsWith('>', $html);
@@ -115,7 +111,7 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 
 	public function testTextArea()
 	{
-		$this->converter->shouldReceive('convert')->with('bar', null)->once()->andReturn([]);
+		$this->converter->expects($this->once())->method('convert')->with('bar', null)->willReturn(array());
 		$html = $this->form->textarea('bar[]');
 
 		$this->assertStringEndsWith('>', $html);
@@ -125,7 +121,7 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 
 	public function testSelect()
 	{
-		$this->converter->shouldReceive('convert')->with('bar_foo', null)->once()->andReturn([]);
+		$this->converter->expects($this->once())->method('convert')->with('bar_foo', null)->willReturn(array());
 		$html = $this->form->select('bar_foo');
 
 		$this->assertStringEndsWith('>', $html);
@@ -135,7 +131,8 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 
 	public function testCheckbox()
 	{
-		$this->converter->shouldReceive('convert')->with('foo', 'checkbox')->once()->andReturn([]);
+		$this->converter->expects($this->exactly(2))->method('convert')
+			->withConsecutive(array('foo', 'checkbox'), array('bar', 'radio'))->willReturn(array());
 		$html = $this->form->checkbox('foo[]');
 
 		$this->assertStringEndsWith('>', $html);
@@ -143,7 +140,6 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 		$this->assertContains(' name="foo[]"', $html);
 		$this->assertContains(' type="checkbox"', $html);
 
-		$this->converter->shouldReceive('convert')->with('bar', 'radio')->once()->andReturn([]);
 		$html = $this->form->radio('bar[]');
 
 		$this->assertStringEndsWith('>', $html);
@@ -153,12 +149,12 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 	}
 
 	static $validationRules = array(
-		'uid' => ['required', 'min:3', 'max:30', 'alpha_num', 'exists:users,uid'],
+		'uid' => array('required', 'min:3', 'max:30', 'alpha_num', 'exists:users,uid'),
 		'email' => 'required|max:255|email|unique:users,email',
-		'url' => ['required', 'max:255', 'url', 'unique:users,url', 'active_url'],
+		'url' => array('required', 'max:255', 'url', 'unique:users,url', 'active_url'),
 		'name' => 'max:255|alpha',
 		//
-		'pwd' => ['min:6', 'max:15', 'regex:/^[0-9]+[xX][0-9]+$/'],
+		'pwd' => array('min:6', 'max:15', 'regex:/^[0-9]+[xX][0-9]+$/'),
 		'confirm_pwd' => 'min:6|max:15|same:pwd',
 		//
 		'first_name' => 'required_with:name|max:100|different:name',
@@ -184,7 +180,7 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 
 	public function testIntegration()
 	{
-		$html = $this->form->model(new \stdClass(), ['url' => '/'], static::$validationRules);
+		$html = $this->form->model(new \stdClass(), array('url' => '/'), static::$validationRules);
 		$this->assertEquals('<form method="POST" action="/" accept-charset="UTF-8"><input name="_token" type="hidden" value="_csrf_token">', $html);
 		$this->assertEquals(static::$validationRules, $this->converter->getValidationRules());
 
@@ -197,7 +193,7 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 		$this->assertContains(' pattern="^[A-Za-z0-9_.-]+$" data-msg-pattern="The UID may only contain letters and numbers."', $html);
 		$this->assertContains(' data-rule-remote="/laravalid/exists?params=dXNlcnMsdWlk" data-msg-remote="The UID did not exist."', $html);
 
-		$html = $this->form->email('email', null, ['placeholder' => 'Email']);
+		$html = $this->form->email('email', null, array('placeholder' => 'Email'));
 		$this->assertStringEndsWith(' name="email" type="email">', $html);
 		$this->assertStringStartsWith('<input placeholder="Email"', $html);
 		$this->assertContains(' required="required" data-msg-required="The email field is required."', $html);
@@ -260,7 +256,7 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 		$this->assertContains(' data-rule-url="true" data-msg-url="The photo format is invalid."', $html);
 		$this->assertContains(' data-rule-remote="/laravalid/active_url?params=YW5vbg" data-msg-remote="The photo is not a valid URL."', $html);
 
-		$html = $this->form->select('gender', ['Female', 'Male']);// unsupported: boolean
+		$html = $this->form->select('gender', array('Female', 'Male'));// unsupported: boolean
 		$this->assertEquals('<select name="gender"><option value="0">Female</option><option value="1">Male</option></select>', $html);
 
 		$html = $this->form->input('date', 'birthdate');
@@ -276,10 +272,10 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 		$this->assertStringStartsWith('<input ', $html);
 		$this->assertContains(' data-rule-rangelength="20,30" maxlength="30" data-msg-rangelength="The phone must be between {0} and {1} characters."', $html);
 
-		$html = $this->form->select('country', ['US' => 'US', 'VN' => 'VN']);// unsupported: in
+		$html = $this->form->select('country', array('US' => 'US', 'VN' => 'VN'));// unsupported: in
 		$this->assertEquals('<select name="country"><option value="US">US</option><option value="VN">VN</option></select>', $html);
 
-		$html = $this->form->number('rating');
+		$html = method_exists($this->form, 'number') ? $this->form->number('rating') : $this->form->input('number', 'rating');
 		$this->assertStringEndsWith(' name="rating" type="number">', $html);
 		$this->assertStringStartsWith('<input ', $html);
 		$this->assertNotContains(' data-rule-numeric=', $html);
@@ -287,14 +283,14 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 		$this->assertContains(' data-msg-number="The rating must be a number."', $html);
 		$this->assertContains(' data-rule-range="0,100" data-msg-range="The rating must be between {0} and {1}."', $html);
 
-		$html = $this->form->number('duration');
+		$html = method_exists($this->form, 'number') ? $this->form->number('duration') : $this->form->input('number', 'duration');
 		$this->assertStringEndsWith(' name="duration" type="number">', $html);
 		$this->assertStringStartsWith('<input ', $html);
 		$this->assertContains(' data-rule-integer="true" data-msg-integer="The length must be an integer."', $html);
 		$this->assertContains(' min="0" data-msg-min="The length must be at least {0}."', $html);
 		$this->assertContains(' max="18000" data-msg-max="The length may not be greater than {0}."', $html);
 
-		$html = $this->form->textarea('description', null, ['rows' => 5]);
+		$html = $this->form->textarea('description', null, array('rows' => 5));
 		$this->assertStringEndsWith(' name="description" cols="50"></textarea>', $html);
 		$this->assertStringStartsWith('<textarea rows="5"', $html);
 		$this->assertContains(' maxlength="2000" data-msg-maxlength="The description may not be greater than {0} characters."', $html);
@@ -306,7 +302,7 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 		$this->assertContains(' maxlength="3" data-msg-maxlength="The roles may not have more than {0} items."', $html);
 
 		// overwrite 'accept'
-		$html = $this->form->file('avatar', ['accept' => '.csv,image/png']);
+		$html = $this->form->file('avatar', array('accept' => '.csv,image/png'));
 		$this->assertStringEndsWith(' name="avatar" type="file">', $html);
 		$this->assertStringStartsWith('<input ', $html);
 		$this->assertNotContains(' accept="image/*"', $html);
@@ -331,7 +327,6 @@ class FormBuilderTest extends \PHPUnit_Framework_TestCase
 		$this->assertContains(' data-rule-rangelength="100,500" maxlength="500" data-msg-rangelength="The upload must be between {0} and {1} kilobytes."', $html);
 
 		$this->assertEquals('</form>', $this->form->close());
-		$this->assertEquals([], $this->converter->getValidationRules());
+		$this->assertEquals(array(), $this->converter->getValidationRules());
 	}
-
 }

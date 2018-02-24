@@ -133,7 +133,7 @@ class UserController extends Controller {
 
         if ($validator->fails())
         {
-            // actually withErrors is not really neccessary because we already show errors at client side for normal users
+            // actually withErrors is not really necessary because we already show errors at client side for normal users
             return Redirect::back()->withErrors($validator);
         }
 
@@ -187,7 +187,7 @@ Form::converter()->route()->extend('someotherrule', function($name, $parameters)
 });
 ```
 
-Second, you can create your own converter (which extends baseconverter or any current plugin converter) in `Bllim\Laravalid\Converter\` namespace and change plugin configuration in config file with your own plugin name.
+Second, you can create your own converter (which extends `Base\Converter` or any current plugin converter) in `Bllim\Laravalid\Converter\` namespace and change plugin configuration in config file with your own plugin name.
 
 > **Note:** If you are creating a converter for some existed html/js plugin please create it in `converter` folder and send a pull-request.
 
@@ -244,7 +244,7 @@ To use Jquery Validation, change plugin to `JqueryValidation` in config file and
 ### Contribution
 You can fork and contribute to development of the package. All pull requests is welcome.
 
-**Convertion Logic**
+**Conversion Logic**
 Package converts rules by using converters (in `src/Bllim/Laravalid/converter`). It uses `Converter` class of chosen plugin which extends `Converter/Base/Converter` class. 
 You can look at existed methods and plugins to understand how it works. Explanation will be ready, soon.
 
