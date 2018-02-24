@@ -42,14 +42,13 @@ class ConverterTest extends \PHPUnit_Framework_TestCase
         $translator = $test->getMock('Illuminate\Translation\Translator', !$trans ? ['has'] : ['has', 'get'], [$loader, 'en']);
         $translator->expects($test->any())->method('has')->willReturn(false);
 
+        $view = $test->getMock('Illuminate\Contracts\View\Factory');
+        $mocks = compact('config', 'url', 'encrypter', 'translator', 'view');
+
         $app = $test->getMock('Illuminate\Container\Container', ['make']);
-        $app->expects($test->any())->method('make')->willReturnMap([
-            ['config', [], $config],
-            ['url', [], $url],
-            ['encrypter', [], $encrypter],
-            ['translator', [], $translator],
-            ['view', [], $test->getMock('Illuminate\Contracts\View\Factory')],
-        ]);
+        $app->expects($test->any())->method('make')->willReturnCallback(function ($abstract) use ($mocks) {
+            return isset($mocks[$abstract]) ? $mocks[$abstract] : null;
+        });
 
         return $app;
     }
